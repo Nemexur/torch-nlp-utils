@@ -1,0 +1,27 @@
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Byte-compiled / optimized / DLL files
+__pycache__
+
+# Virtual Environment
+*env/
+.python-version
+
+# VSCode
+.vscode/
+
+# Certain file types
+*.pkl
+*.sh
+
+# Distribution / packaging
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+*.egg-info/
+.installed.cfg
+*.egg
