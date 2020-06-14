@@ -3,7 +3,7 @@
 Inspired by [AllenNLP](https://github.com/allenai/allennlp) data processing I have decided to built a slightly different implementation for pure PyTorch models.
 My main goal was an easy integration with the existing pipeline and simplification of dataset reading and label encoding for text.
 
-DatasetReader is almost the same as AllenNLP version (mine has support for loading max_instances_in_memory each time, it is useful for additional sorting in DataIterator), however, DataIterator and Vocabulary are completely different.
+DatasetReader is almost the same as AllenNLP version (mine has support for loading `max_instances_in_memory` each time, it is useful for additional sorting in DataIterator), however, DataIterator and Vocabulary are completely different.
 
 * **Data** - processing data for DL Model in PyTorch.
 * **Common** - just a bunch of useful classes and functions for development.
