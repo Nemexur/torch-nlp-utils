@@ -8,7 +8,7 @@ This package is its essence is a collection of useful utils for development and 
 
 Example:
 
-1. Define your dataset reader
+1. Define your dataset reader.
 
 ```python
 class MyDatasetReader(DatasetReader):
@@ -21,14 +21,14 @@ class MyDatasetReader(DatasetReader):
         return {'tokens': tokens, 'labels': 1}
 ```
 
-2.Instantiate you train_dataset.
+2.Instantiate you train dataset.
 
 ```python
 reader = MyDatasetReader(lazy=True)
 train_dataset = reader.read('./sample.csv')
 ```
 
-3.Construct Vocabulary for label encoding
+3.Construct Vocabulary for label encoding.
 
 ```python
 vocab = Vocabulary(
@@ -42,13 +42,13 @@ vocab = Vocabulary(
 )
 ```
 
-4.Encode train_dataset with it.
+4.Encode train dataset with Vocabulary.
 
 ```python
 train_dataset.encode_with(vocab)
 ```
 
-5.Instantiate DataIterator
+5.Instantiate DataIterator.
 
 ```python
 def collate_fn(sample):
@@ -62,7 +62,7 @@ iterator = DataIterator(
 )
 ```
 
-6.Check results :))
+6.Check results :).
 
 ```python
 print(next(iter(iterator)))
