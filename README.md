@@ -1,18 +1,20 @@
 # Torch Data Utils
 
-Inspired by AllenNLP library I have decided to built my own for pure PyTorch.
-This package is its essence is a collection of useful utils for development and data processing in PyTorch.
+Inspired by [AllenNLP](https://github.com/allenai/allennlp) data processing I have decided to built a slightly different implementation for pure PyTorch models.
+My main goal was an easy integration with the existing pipeline and simplification of dataset reading and label encoding for text.
 
-* **Data** - for processing datasets for DL Model in PyTorch.
-* **Common** - just a bunch of useful classes and functions.
+DatasetReader is almost the same as AllenNLP version (mine has support for loading max_instances_in_memory each time, it is useful for additional sorting in DataIterator), however, DataIterator and Vocabulary are completely different.
 
-Example:
+* **Data** - processing data for DL Model in PyTorch.
+* **Common** - just a bunch of useful classes and functions for development.
+
+Example of creating dataset reader, encoding it and iterating in lazy manner:
 
 1. Define your dataset reader.
 
 ```python
 class MyDatasetReader(DatasetReader):
-    def _read(self, file_path: str) -> Union[Iterable[Any], Dataset]:
+    def _read(self, file_path: str) -> Iterable[Dict[str, Any]]:
         with open(file_path, 'r', encoding='utf-8') as file:
             for line in file:
                 yield self._text_to_instance(line.split())
