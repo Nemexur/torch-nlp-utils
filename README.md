@@ -62,7 +62,7 @@ iterator = DataIterator(
 )
 ```
 
-6.Check results :).
+6.Check results :)
 
 ```python
 print(next(iter(iterator)))
