@@ -23,14 +23,14 @@ class MyDatasetReader(DatasetReader):
         return {'tokens': tokens, 'labels': 1}
 ```
 
-2.Instantiate you train dataset.
+2. Instantiate you train dataset.
 
 ```python
 reader = MyDatasetReader(lazy=True)
 train_dataset = reader.read('./sample.csv')
 ```
 
-3.Construct Vocabulary for label encoding.
+3. Construct Vocabulary for label encoding.
 
 ```python
 vocab = Vocabulary(
@@ -44,13 +44,13 @@ vocab = Vocabulary(
 )
 ```
 
-4.Encode train dataset with Vocabulary.
+4. Encode train dataset with Vocabulary.
 
 ```python
 train_dataset.encode_with(vocab)
 ```
 
-5.Instantiate DataIterator.
+5. Instantiate DataIterator.
 
 ```python
 def collate_fn(sample):
@@ -64,7 +64,7 @@ iterator = DataIterator(
 )
 ```
 
-6.Check results :)
+6. Check results for one batch :)
 
 ```python
 print(next(iter(iterator)))
