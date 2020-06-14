@@ -53,13 +53,9 @@ train_dataset.encode_with(vocab)
 5. Instantiate DataIterator.
 
 ```python
-def collate_fn(sample):
-    print(sample, end='\n\n')
-    return sample
-
 iterator = DataIterator(
     train_dataset,
-    collate_fn=collate_fn,
+    collate_fn=lambda x: x,
     batch_size=2
 )
 ```
@@ -67,11 +63,7 @@ iterator = DataIterator(
 6. Check results for one batch :)
 
 ```python
-print(next(iter(iterator)))
-```
-
-```python
-[{'tokens': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 15, 11, 23, 24, 11, 25, 26, 27, 28], 'labels': 1}, {'tokens': [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], 'labels': 1}]
+next(iter(iterator))
 
 [{'tokens': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 15, 11, 23, 24, 11, 25, 26, 27, 28], 'labels': 1}, {'tokens': [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], 'labels': 1}]
 ```
