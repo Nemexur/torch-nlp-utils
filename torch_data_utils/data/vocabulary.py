@@ -234,6 +234,7 @@ class Namespace:
             raise ValueError('Invalid processing type has been passed.')
         if max_size is not None and max_size <= 0:
             raise Exception('Max size can not be less or equal 0.')
+        self._from_saved = False
         self._max_size = max_size
         self._processing_type = getattr(_ProcessingType, processing_type)
         self._token_to_index, self._index_to_token = self._processing_type.get_dicts()
@@ -285,6 +286,7 @@ class Namespace:
         with open(os.path.join(path, 'config.json'), 'r', encoding='utf-8') as file:
             namespace = cls(**json.load(file))
         dict_type = namespace._processing_type.dict_type
+        namespace._from_saved = True
         namespace._token_to_index = dict_type.load(os.path.join(path, 'token_to_index.json'))
         namespace._index_to_token = dict_type.load(os.path.join(path, 'index_to_token.json'))
         namespace.eval()
@@ -310,12 +312,14 @@ class Namespace:
     def token_to_index(self, token: Any) -> int:
         """Get index for `token`."""
         # Convert to string as json stores only string keys.
-        return self._token_to_index[str(token)]
+        setup = str if self._from_saved else lambda x: x
+        return self._token_to_index[setup(token)]
 
     def index_to_token(self, index: int) -> Any:
         """Get token for `index`."""
         # Convert to string as json stores only string keys.
-        return self._index_to_token[str(index)]
+        setup = str if self._from_saved else lambda x: x
+        return self._index_to_token[setup(index)]
 
 
 class Vocabulary:
