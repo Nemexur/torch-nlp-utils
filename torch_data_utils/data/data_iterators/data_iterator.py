@@ -42,7 +42,7 @@ class Batch:
         tensor_dict = defaultdict(list)
         for instance in instances:
             for field, tensor in instance.items():
-                tensor_dict[field].append(torch.tensor(tensor))
+                tensor_dict[field].append(tensor)
         return tensor_dict
 
 
