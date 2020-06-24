@@ -173,7 +173,7 @@ class _ProcessingType(Enum):
         ]
     )
     just_encode = _ProcessingTypeProperties(
-        dict_type=_NamespaceDict(),
+        dict_type=_NamespaceDict,
         dicts=[_NamespaceDict(), _NamespaceDict()]
     )
     pass_through = _ProcessingTypeProperties(
@@ -221,8 +221,6 @@ class Namespace:
             - pass_through - skip any processing and return passed value on each call.
     max_size : `int`, optional (default = `None`)
         Max size of vocabulary for a namespace.
-    depends_on : `Union[str, List[str]]`, optional (default = `None`)
-        Other Namespace name that should be encoded with this one.
     """
     @save_params
     def __init__(
@@ -362,7 +360,8 @@ class Vocabulary:
             namespace.eval()
 
     def _set_dependent_namespaces(self, namespaces: List[Namespace]) -> None:
-        token_to_index, index_to_token = namespaces[0]._processing_type.get_dicts()
+        """Setup Namespaces that should have shared dicts."""
+        token_to_index, index_to_token = namespaces[0].token_to_index, namespaces[0].index_to_token
         for namespace in namespaces:
             namespace._token_to_index, namespace._index_to_token = token_to_index, index_to_token
 

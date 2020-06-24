@@ -6,7 +6,6 @@ from typing import (
 from torch_data_utils.data.dataset_readers.dataset_reader import (
     _MemorySizedDatasetInstances, _DatasetInstances
 )
-import torch
 from functools import wraps
 from collections import defaultdict
 from torch.utils.data import DataLoader, Dataset
