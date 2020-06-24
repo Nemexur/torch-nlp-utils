@@ -60,10 +60,11 @@ iterator = DataIterator(
 )
 ```
 
-6. Check results for one batch :)
+6. Check results for one batch. DataIterator returns `Batch` instance with the same attributes as namespaces.
 
 ```python
-next(iter(iterator))
+batch = next(iter(iterator))
+print(batch.__dict__)
 
-[{'tokens': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 15, 11, 23, 24, 11, 25, 26, 27, 28], 'labels': 1}, {'tokens': [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41], 'labels': 1}]
+{'tokens': [[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 15, 11, 23, 24, 11, 25, 26, 27, 28], [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]], 'labels': [1, 1]}
 ```
