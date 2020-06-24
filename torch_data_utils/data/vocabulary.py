@@ -153,8 +153,8 @@ class _ProcessingType(Enum):
     Enum of supported cases for namespace processing.
     - padding_oov - set padding as 0 and out-of-vocabulary as 1.
     - oov - do not set padding and set out-of-vocabulary as 0.
+    - just_encode - encode value starting from 0 and raise error for out-of-vocabulary tokens.
     - pass_through - skip any processing and return passed value on each call.
-    - just_encode - encode value and raise error for out-of-vocabulary tokens.
     """
     __add_token_func__ = '__add_token_func__'
 
@@ -218,6 +218,7 @@ class Namespace:
         It supports such cases:
             - padding_oov - set padding as 0 and treat out-of-vocabulary tokens.
             - oov - do not set padding and treat out-of-vocabulary tokens.
+            - just_encode - encode value starting from 0 and raise error for out-of-vocabulary tokens.
             - pass_through - skip any processing and return passed value on each call.
     max_size : `int`, optional (default = `None`)
         Max size of vocabulary for a namespace.
