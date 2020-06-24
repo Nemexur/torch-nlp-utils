@@ -19,7 +19,7 @@ from torch_data_utils.settings import ROOT_DIR
 CACHE_DIRECTORY = os.path.join(ROOT_DIR, '.torch_data_utils_cache')
 
 
-def partialclass(cls: Type[T], *args, **kwargs) -> T:
+def partialclass(cls: Type[T], *args, **kwargs) -> Type[T]:
     """
     Just like `partialmethod` from `functools`
     it performs partial init for classes.
@@ -33,17 +33,19 @@ def partialclass(cls: Type[T], *args, **kwargs) -> T:
 
 def save_params(func: Callable) -> Callable:
     """
-    Decorator to save parameters of function call in class.
+    Decorator to save parameters of function call for the class.
 
     It works only for functions
     that doesn't have `*args` in its arguments list.
+    This decorator only saves parameters for the latest call.
     """
-    def wrapper(cls: Type[T], *args, **kwargs) -> Any:
-        cls.__init_params__ = {
-            # Start from one as the first one is self.
+    def wrapper(cls: Type[T], *args, **kwargs) -> Callable:
+        cls.__func_params__ = getattr(cls, '__func_params__', {})
+        call_params = {
             arg: value for arg, value in zip(inspect.getfullargspec(func).args[1:], args)
         }
-        cls.__init_params__.update(kwargs)
+        call_params.update(kwargs)
+        cls.__func_params__[func.__name__] = call_params
         return func(cls, *args, **kwargs)
     return wrapper
 

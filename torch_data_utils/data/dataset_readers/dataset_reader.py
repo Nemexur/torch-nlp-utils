@@ -1,7 +1,7 @@
 from typing import (
     Type, List, Callable,
     Iterable, Iterator, Any,
-    Union, Optional
+    Union, Optional, Dict
 )
 from torch.utils.data import (
     Dataset, IterableDataset
@@ -197,10 +197,10 @@ class DatasetReader(metaclass=ABCMeta):
         return instances
 
     @abstractmethod
-    def _read(self, file_path: str):
+    def _read(self, file_path: str) -> Iterable[Dict[str, Any]]:
         """
         Reads the instances from the given file_path and returns them as an
-        `Iterable` (which could be a list or could be a generator).
+        `Iterable` (which could be a list or could be a generator) of dicts.
         You are strongly encouraged to use a generator, so that users can
         read a dataset in a lazy way, if they so choose.
         """

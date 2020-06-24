@@ -1,8 +1,6 @@
 from typing import (
     Dict, Type
 )
-
-from functools import wraps
 from .extra_typing import T
 
 
@@ -15,7 +13,6 @@ class Singleton:
     _registry: Dict[str, Type[T]] = {}
 
     def __init__(self, cls: Type[T]) -> None:
-        wraps(cls)
         self._cls: Type[T] = cls
         self._shared: Type[T] = None
 
