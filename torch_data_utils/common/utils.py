@@ -19,7 +19,7 @@ def partialclass(cls: Type[T], *args, **kwargs) -> Type[T]:
     Just like `partialmethod` from `functools`
     it performs partial init for classes.
     `Args` and `kwargs` are parameters that needs to be fixed
-    for class init
+    for class init.
     """
     class PartialCls(cls):
         __init__ = partialmethod(cls.__init__, *args, **kwargs)

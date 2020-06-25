@@ -75,7 +75,7 @@ class _LazyDatasetInstances(IterableDataset, Encodable):
         instances = self._instance_generator()
         if isinstance(instances, list):
             raise ConfigurationError(
-                "For a lazy dataset reader, _read() must return a generator"
+                "For a lazy dataset reader, _read() must return a generator."
             )
         for instance in instances:
             yield instance
@@ -83,7 +83,7 @@ class _LazyDatasetInstances(IterableDataset, Encodable):
     def __len__(self):
         """
         Return one as we yield only one instance
-        and can not guess the whole number of instances
+        and can not guess the whole number of instances.
         """
         return 1
 

@@ -40,13 +40,13 @@ class Registrable(FromParams):
                 if exist_ok:
                     message = (
                         f"{name} has already been registered as {registry[name].__name__}, but "
-                        f"exist_ok=True, so overwriting with {cls.__name__}"
+                        f"exist_ok=True, so overwriting with {cls.__name__}."
                     )
                     logger.info(message)
                 else:
                     message = (
                         f"Cannot register {name} as {cls.__name__}; "
-                        f"name already in use for {registry[name].__name__}"
+                        f"name already in use for {registry[name].__name__}."
                     )
                     raise ValueError(message)
             registry[name] = subclass
@@ -78,13 +78,13 @@ class Registrable(FromParams):
             # if passed name as None probably because we tried to
             # initialize a subclass of registried class
             return None
-        logger.debug(f"Instantiating registered subclass {name} of {cls}")
+        logger.debug(f"Instantiating registered subclass {name} of {cls}.")
         if name in Registrable._registry[cls]:
             return Registrable._registry[cls].get(name)
         else:
             # is not a qualified class name
             raise ConfigurationError(
-                f"{name} is not a registered name for {cls.__name__}. "
+                f"{name} is not a registered name for {cls.__name__}."
             )
 
     @classmethod

@@ -8,7 +8,7 @@ class Singleton:
     """
     `Decorator` that turns your class into a `Singleton`.
     By definition of a `Singleton` pattern this class must not accept any arguments
-    during initialization so this `decorator` works only with such classes
+    during initialization so this `decorator` works only with such classes.
     """
     _registry: Dict[str, Type[T]] = {}
 
@@ -18,9 +18,7 @@ class Singleton:
 
     @property
     def shared(self) -> Type[T]:
-        """
-        Get `Singleton` instance
-        """
+        """Get `Singleton` instance."""
         if not self._shared:
             self._shared = self._init_class()
             return self._shared
