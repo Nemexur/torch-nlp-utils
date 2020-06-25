@@ -46,16 +46,14 @@ class Batch:
 
 
 def custom_collate(collate_fn: Callable) -> Callable:
-    """
-    Decorator for PyTorch collate function.
-    """
+    """Decorator for PyTorch collate function."""
     @wraps(collate_fn)
     def wrapper(instances: Iterable[Dict[str, List]]) -> Any:
         return collate_fn(Batch(instances))
     return wrapper
 
 
-class DataIterator(DataLoader):
+class DataIterator:
     """
     Perform iteration over `DatasetReader` and its subclasses.
     It accepts dataset instance from `DatasetReader.read()` method and parameters for
@@ -85,6 +83,12 @@ class DataIterator(DataLoader):
                 DataLoader, collate_fn=custom_collate(collate_fn),
                 *args, **kwargs
             )
+
+    def __len__(self):
+        if not self._is_memory_sized_dataset:
+            return len(self._dataloader)
+        else:
+            return len(self._dataset)
 
     def __iter__(self):
         if not self._is_memory_sized_dataset:
