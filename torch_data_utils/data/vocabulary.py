@@ -351,7 +351,10 @@ class Vocabulary:
                 'or set them empty.'
             )
         if any([isinstance(datasets, _MemorySizedDatasetInstances) for datasets in datasets.values()]):
-            raise Exception('Vocabulary does not support MemorySized Datasets.')
+            raise Exception(
+                'Vocabulary does not support MemorySized Datasets '
+                '(has attribute max_instances_in_memory).'
+            )
         self._namespaces = deepcopy(namespaces)
         for d_namespaces in dependent_namespaces:
             self._set_dependent_namespaces([self._namespaces[x] for x in d_namespaces])

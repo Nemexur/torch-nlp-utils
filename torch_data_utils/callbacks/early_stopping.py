@@ -23,12 +23,12 @@ class EarlyStopping:
             self._old_metric = -float('inf')
         else:
             raise Exception(
-                "You should pass '-' or '+' at the beginnig of metric name."
+                "You should pass '-' or '+' at the beginning of metric."
             )
         self._patience = 0
         self._metric = metric[1:]
         self._should_stop = False
-        self._best_metrics = None
+        self._best_metrics = {}
         self._max_patience = patience
 
     @property
@@ -39,7 +39,7 @@ class EarlyStopping:
     @property
     def should_stop(self) -> bool:
         """Whether to stop training or not."""
-        return self._should_stop
+        return self._patience == self._max_patience
 
     def __call__(self, metrics: Dict[str, float]) -> None:
         """Check results after one epoch."""
@@ -49,6 +49,3 @@ class EarlyStopping:
             self._old_metric = metrics[self._metric]
         else:
             self._patience += 1
-        # Raise error if max_patience
-        if self._patience == self._max_patience:
-            self._should_stop = True
