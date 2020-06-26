@@ -15,7 +15,7 @@ class SaveCheckpoint:
     """
     def __init__(self, directory: str, keep_num_checkpoints: int = None) -> None:
         os.makedirs(directory, exist_ok=False)
-        if keep_num_checkpoints < 1:
+        if keep_num_checkpoints is not None and keep_num_checkpoints < 1:
             raise Exception('keep_num_checkpoints should be greater than 0')
         self._epoch_idx = 0
         self._directory = directory
