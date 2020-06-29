@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 import torch
 import warnings
 from abc import ABCMeta, abstractmethod
@@ -16,7 +16,7 @@ class Metric(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_metric(self, reset: bool = False) -> List[float]:
+    def get_metric(self, reset: bool = False) -> List[Any]:
         """
         Get list of metric results for each class.
 
