@@ -388,7 +388,7 @@ class Vocabulary:
         Save data at `path`.
         You should pass a directory title
         in which directory for Vocabulary
-        will be saved.
+        will be saved (default = `'vocabulary'`).
         """
         for namespace, namespace_cls in self._namespaces.items():
             namespace_dir = os.path.join(path, namespace)
