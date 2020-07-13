@@ -1,4 +1,4 @@
-# Torch Data Utils
+# Torch NLP Utils
 
 Inspired by [AllenNLP](https://github.com/allenai/allennlp) data processing I have decided to built a slightly different implementation for pure PyTorch models.
 My main goal was an easy integration with the existing pipeline and simplification of dataset reading and label encoding for text.
