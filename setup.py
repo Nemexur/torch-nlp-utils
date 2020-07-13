@@ -9,7 +9,7 @@ with open('requirements.txt') as f:
 
 def setup_package():
     setup(
-        name="torch_data_utils",
+        name="torch_nlp_utils",
         packages=find_packages(exclude=['tests', 'tests.*']),
         install_requires=required
     )
