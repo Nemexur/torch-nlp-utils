@@ -1,64 +1,42 @@
 from typing import (
-    Type, List, Callable,
+    List, Callable,
     Iterable, Iterator, Any,
     Union, Optional, Dict
 )
 from torch.utils.data import (
     Dataset, IterableDataset
 )
-from enum import Enum
 from tqdm import tqdm
-from functools import wraps
 from abc import ABCMeta, abstractmethod
-from torch_data_utils.common.utils import lazy_groups_of
-from torch_data_utils.common.checks import ConfigurationError
-
-
-class EncoderMode(Enum):
-    item_getter = lambda x, encoder: encoder(x)
-    lazy_iterator = lambda x, encoder: map(encoder, iter(x))
-    memory_sized_iterator = lambda x, encoder: map(lambda x: [encoder(x_i) for x_i in x], iter(x))
-
-    def __call__(self, *args, **kwargs):
-        return self.value(*args, **kwargs)
+from torch_nlp_utils.data.vocabulary import Vocabulary
+from torch_nlp_utils.common.utils import lazy_groups_of
+from torch_nlp_utils.common.checks import ConfigurationError
 
 
 class Encodable:
     def __init__(self):
         self._encoder = lambda x: x
 
-    def encode_with(self, vocab):
+    def encode_with(self, vocab: Vocabulary):
         self._encoder = vocab.get_encoder()
 
-    @staticmethod
-    def encode(mode: EncoderMode) -> Callable:
-        def inner_decorator(func: Callable) -> Callable:
-            @wraps(func)
-            def wrapper(cls, *args, **kwargs) -> Any:
-                if not isinstance(cls, Encodable):
-                    raise ValueError(
-                        'You must inherit Encodable class '
-                        'to use `Encodable.encode` decorator.'
-                    )
-                return mode(func(cls, *args, **kwargs), cls._encoder)
-            return wrapper
-        return inner_decorator
+    def encode(self, token: Any) -> Callable:
+        return self._encoder(token)
 
 
-class _DatasetInstances(Dataset, Encodable):
+class DatasetInstances(Dataset, Encodable):
     def __init__(self, instances: List[List[Any]]) -> None:
         super().__init__()
         self._instances = instances
 
-    @Encodable.encode(mode=EncoderMode.item_getter)
     def __getitem__(self, idx):
-        return self._instances[idx]
+        return self.encode(self._instances[idx])
 
     def __len__(self):
         return len(self._instances)
 
 
-class _LazyDatasetInstances(IterableDataset, Encodable):
+class LazyDatasetInstances(IterableDataset, Encodable):
     """
     An `Iterable` that just wraps a thunk for generating instances and calls it for
     each call to `__iter__`.
@@ -70,7 +48,6 @@ class _LazyDatasetInstances(IterableDataset, Encodable):
         super().__init__()
         self._instance_generator = instance_generator
 
-    @Encodable.encode(mode=EncoderMode.lazy_iterator)
     def __iter__(self) -> Iterator[List[Any]]:
         instances = self._instance_generator()
         if isinstance(instances, list):
@@ -78,7 +55,7 @@ class _LazyDatasetInstances(IterableDataset, Encodable):
                 "For a lazy dataset reader, _read() must return a generator."
             )
         for instance in instances:
-            yield instance
+            yield self.encode(instance)
 
     def __len__(self):
         """
@@ -88,7 +65,7 @@ class _LazyDatasetInstances(IterableDataset, Encodable):
         return 1
 
 
-class _MemorySizedDatasetInstances(IterableDataset, Encodable):
+class MemorySizedDatasetInstances(IterableDataset, Encodable):
     """
     Breaks the dataset into "memory-sized" lists of instances,
     which it yields up one at a time until it gets through a full epoch.
@@ -104,7 +81,6 @@ class _MemorySizedDatasetInstances(IterableDataset, Encodable):
         self._instance_generator = instance_generator
         self._max_instances_in_memory = max_instances_in_memory
 
-    @Encodable.encode(mode=EncoderMode.memory_sized_iterator)
     def __iter__(self):
         instances = self._instance_generator()
         if isinstance(instances, list):
@@ -112,7 +88,7 @@ class _MemorySizedDatasetInstances(IterableDataset, Encodable):
                 "For a lazy dataset reader, _read() must return a generator"
             )
         for instance in lazy_groups_of(instances, self._max_instances_in_memory):
-            yield instance
+            yield self.encode(instance)
 
     def __len__(self):
         """
@@ -172,12 +148,12 @@ class DatasetReader(metaclass=ABCMeta):
         """
         if self._lazy:
             if self._max_instances_in_memory is not None and self._max_instances_in_memory > 0:
-                instances: Type[IterableDataset] = _MemorySizedDatasetInstances(
+                instances: IterableDataset = MemorySizedDatasetInstances(
                     lambda: self._read(file_path),
                     max_instances_in_memory=self._max_instances_in_memory
                 )
             else:
-                instances: Type[IterableDataset] = _LazyDatasetInstances(
+                instances: IterableDataset = LazyDatasetInstances(
                     lambda: self._read(file_path)
                 )
         else:
@@ -193,7 +169,7 @@ class DatasetReader(metaclass=ABCMeta):
                     "No instances were read from the given filepath {}. "
                     "Is the path correct?".format(file_path)
                 )
-            instances: Type[Dataset] = _DatasetInstances(instances)
+            instances: Dataset = DatasetInstances(instances)
         return instances
 
     @abstractmethod

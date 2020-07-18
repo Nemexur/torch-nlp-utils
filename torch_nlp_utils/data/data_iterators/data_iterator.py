@@ -1,15 +1,15 @@
 from typing import (
-    Iterable, Type, Dict,
+    Iterable, Dict,
     List, DefaultDict,
     Callable, Any
 )
-from torch_data_utils.data.dataset_readers.dataset_reader import (
-    _MemorySizedDatasetInstances, _DatasetInstances
+from torch_nlp_utils.data.dataset_readers.dataset_reader import (
+    MemorySizedDatasetInstances, DatasetInstances
 )
 from functools import wraps
 from collections import defaultdict
 from torch.utils.data import DataLoader, Dataset
-from torch_data_utils.common.utils import partialclass
+from torch_nlp_utils.common.utils import partialclass
 
 
 class Batch:
@@ -17,14 +17,19 @@ class Batch:
     Class to construct batch from iterable of instances
     (each instance is a dictionary).
 
-    Example:
+    Example
+    -------
     Dictionary instance `{'tokens': ..., 'labels': ...}`
     then to access tokens you need to get an `attribute tokens` from `Batch` class instance.
     """
     def __init__(self, instances: Iterable[Dict[str, List]]) -> None:
         tensor_dict = self._as_tensor_dict_from(instances)
-        for field, tensor in tensor_dict.items():
-            setattr(self, field, tensor)
+        self.__dict__.update(tensor_dict)
+
+    def __repr__(self) -> str:
+        cls = str(self.__class__.__name__)
+        info = ', '.join(map(lambda x: f"{x[0]}={x[1]}", self.__dict__.items()))
+        return f"{cls}({info})"
 
     @staticmethod
     def _as_tensor_dict_from(instances: Iterable[Dict[str, List]]) -> DefaultDict[str, List]:
@@ -57,29 +62,30 @@ class DataIterator:
     """
     Perform iteration over `DatasetReader` and its subclasses.
     It accepts dataset instance from `DatasetReader.read()` method and parameters for
-    `torch.utils.data.DataLoader`.
+    `torch.utils.data.DataLoader`. `collate_fn` should accept Batch instance whose arrtributes
+    are namespaces seen during training.
 
     `P.S.`: if `max_instances_in_memory` is not None for `DatasetReader` you can pass additional
     sampling methods for `torch.utils.data.DataLoader`
     """
     def __init__(
         self,
-        dataset: Type[Dataset],
+        dataset: Dataset,
         collate_fn: Callable,
         *args, **kwargs
     ) -> None:
         self._dataset = dataset
         self._is_memory_sized_dataset = isinstance(
             dataset,
-            _MemorySizedDatasetInstances
+            MemorySizedDatasetInstances
         )
         if not self._is_memory_sized_dataset:
-            self._dataloader: Type[DataLoader] = DataLoader(
+            self._dataloader: DataLoader = DataLoader(
                 dataset, collate_fn=custom_collate(collate_fn),
                 *args, **kwargs
             )
         else:
-            self._dataloader: Type[DataLoader] = partialclass(
+            self._dataloader: DataLoader = partialclass(
                 DataLoader, collate_fn=custom_collate(collate_fn),
                 *args, **kwargs
             )
@@ -95,4 +101,4 @@ class DataIterator:
             yield from self._dataloader
         else:
             for dataset in self._dataset:
-                yield from self._dataloader(_DatasetInstances(dataset))
+                yield from self._dataloader(DatasetInstances(dataset))

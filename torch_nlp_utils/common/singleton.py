@@ -1,7 +1,6 @@
 from typing import (
-    Dict, Type
+    Dict, Type, T
 )
-from .extra_typing import T
 
 
 class Singleton:

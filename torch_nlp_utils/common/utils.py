@@ -1,17 +1,16 @@
 from typing import (
     Iterable, List, Any,
     Iterator, Type,
-    Callable
+    Callable, T
 )
 import os
 import inspect
-from .extra_typing import T
 from itertools import islice
 from functools import partialmethod
-from torch_data_utils.settings import ROOT_DIR
+from torch_nlp_utils.settings import ROOT_DIR
 
 # Constants
-CACHE_DIRECTORY = os.path.join(ROOT_DIR, '.torch_data_utils_cache')
+CACHE_DIRECTORY = os.path.join(ROOT_DIR, '.torch_nlp_utils_cache')
 
 
 def partialclass(cls: Type[T], *args, **kwargs) -> Type[T]:

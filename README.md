@@ -14,13 +14,11 @@ Example of creating dataset reader, encoding it and iterating in lazy manner:
 
 ```python
 class MyDatasetReader(DatasetReader):
-    def _read(self, file_path: str) -> Iterable[Dict[str, Any]]:
+    def _read(self, file_path: str) -> Union[Iterable[Any], Dataset]:
         with open(file_path, 'r', encoding='utf-8') as file:
             for line in file:
-                yield self._text_to_instance(line.split())
-
-    def _text_to_instance(self, tokens: List[str]):
-        return {'tokens': tokens, 'labels': 1}
+                tokens, target = line.split('\t')
+                yield {'tokens': tokens.split(), 'labels': int(target)}
 ```
 
 2. Instantiate you train dataset.
@@ -63,8 +61,7 @@ iterator = DataIterator(
 6. Check results for one batch. DataIterator returns `Batch` instance with the same attributes as namespaces.
 
 ```python
-batch = next(iter(iterator))
-print(batch.__dict__)
+next(iter(iterator))
 
-{'tokens': [[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 15, 11, 23, 24, 11, 25, 26, 27, 28], [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]], 'labels': [1, 1]}
+Batch(tokens=[[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 15, 11, 23, 24, 11, 25, 26, 27], [28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]], labels=[0, 1])
 ```

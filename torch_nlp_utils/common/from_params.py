@@ -1,6 +1,5 @@
-from typing import Type
+from typing import Type, T
 from loguru import logger
-from .extra_typing import T
 from .checks import ConfigurationError
 
 

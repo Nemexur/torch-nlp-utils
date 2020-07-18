@@ -1,8 +1,8 @@
 from typing import (
-    Type, Dict, Optional, List
+    Type, Dict, Optional,
+    List, T
 )
 from loguru import logger
-from .extra_typing import T
 from collections import defaultdict
 from .from_params import FromParams
 from .checks import ConfigurationError
