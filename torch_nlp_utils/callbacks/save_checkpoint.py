@@ -44,7 +44,7 @@ class SaveCheckpoint:
         # Save metrics
         with open(
             os.path.join(cur_epoch_dir, f'epoch_{self._epoch_idx}_metrics.json'),
-            'w',
+            mode='w',
             encoding='utf-8'
         ) as file:
             json.dump(metrics, file, ensure_ascii=False, indent=2)
