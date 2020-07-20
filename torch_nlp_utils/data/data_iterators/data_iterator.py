@@ -3,7 +3,7 @@ from typing import (
     List, DefaultDict,
     Callable, Any
 )
-from torch_nlp_utils.data.dataset_readers.dataset_reader import (
+from torch_nlp_utils.data.dataset_readers.datasets import (
     MemorySizedDatasetInstances, DatasetInstances
 )
 from functools import wraps
