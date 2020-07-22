@@ -82,10 +82,9 @@ class F1Metric(Metric):
             )
             # F1-score
             f1 = 2 * ((precision * recall) / (precision + recall))
-            max_idx = np.argmax(f1)
-            f1_max = f1[max_idx]
+            max_idx = np.nanargmax(f1)
             f1_metrics.append({
-                'f1-score': f1_max if not (math.isnan(f1_max) or math.isinf(f1_max)) else 0,
+                'f1-score': f1[max_idx],
                 'precision': precision[max_idx],
                 'recall': recall[max_idx],
                 'threshold': thr[max_idx]
