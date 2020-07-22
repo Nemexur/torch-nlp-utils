@@ -75,7 +75,7 @@ class F1Metric(Metric):
             prediction = self._all_predictions[:, idx]
             labels = self._all_labels[:, idx]
             # PR-Curve
-            precision, recall, thr = metrics.precision_recall_curve(
+            precision, recall, _ = metrics.precision_recall_curve(
                 labels.numpy(),
                 prediction.numpy(),
                 pos_label=self._positive_label
@@ -86,8 +86,7 @@ class F1Metric(Metric):
             f1_metrics.append({
                 'f1-score': f1[max_idx],
                 'precision': precision[max_idx],
-                'recall': recall[max_idx],
-                'threshold': thr[max_idx]
+                'recall': recall[max_idx]
             })
         if reset:
             self.reset()
