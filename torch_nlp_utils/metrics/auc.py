@@ -59,11 +59,11 @@ class AucMetric(Metric):
         labels: torch.FloatTensor
     ) -> List[int]:
         auc_metrics = []
-        for idx in range(self._all_labels.size(-1)):
-            prediction = self._all_predictions[:, idx]
-            labels = self._all_labels[:, idx]
+        for idx in range(labels.size(-1)):
+            prediction = predictions[:, idx]
+            target = labels[:, idx]
             false_positive_rates, true_positive_rates, _ = metrics.roc_curve(
-                labels.numpy(),
+                target.numpy(),
                 prediction.numpy(),
                 pos_label=self._positive_label
             )

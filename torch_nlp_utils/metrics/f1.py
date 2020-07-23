@@ -72,10 +72,10 @@ class F1Metric(Metric):
         f1_metrics = []
         for idx in range(labels.size(-1)):
             prediction = predictions[:, idx]
-            labels = labels[:, idx]
+            target = labels[:, idx]
             # PR-Curve
             precision, recall, _ = metrics.precision_recall_curve(
-                labels.numpy(),
+                target.numpy(),
                 prediction.numpy(),
                 pos_label=self._positive_label
             )
