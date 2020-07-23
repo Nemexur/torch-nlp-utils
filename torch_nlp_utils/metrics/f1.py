@@ -1,5 +1,4 @@
-from typing import List, Dict
-import math
+from typing import List, Dict, Tuple
 import torch
 import warnings
 import numpy as np
@@ -17,11 +16,17 @@ class F1Metric(Metric):
     ----------
     positive_label : `int`, optional (default = `1`)
         Positive class label for metric.
+    accum_batchs : `bool`, optional (default = `False`)
+        Whether to compute metric for all accumulated batches or not.
+        If reset == True use all batchs.
     """
-    def __init__(self, positive_label: int = 1):
+    def __init__(self, positive_label: int = 1, **kwargs):
+        super().__init__(**kwargs)
         self._positive_label = positive_label
         self._all_predictions = torch.FloatTensor()
         self._all_labels = torch.LongTensor()
+        self._batch_predictions = torch.FloatTensor()
+        self._batch_labels = torch.FloatTensor()
 
     @overrides
     def __call__(
@@ -47,33 +52,27 @@ class F1Metric(Metric):
             raise Exception(
                 "Predictions and labels have different number of classes."
             )
+        self._batch_predictions = predictions.detach().float()
+        self._batch_labels = predictions.detach().long()
         self._all_predictions = torch.cat([
             self._all_predictions,
-            predictions.detach().float()
+            self._batch_predictions
         ], dim=0)
         self._all_labels = torch.cat([
             self._all_labels,
-            labels.detach().long()
+            self._batch_labels
         ], dim=0)
 
     @overrides
-    def get_metric(self, reset: bool = False) -> List[Dict[str, float]]:
-        """
-        Get list of metric results for each class.
-        Each metric is a dict with this keys:
-        f1-score, precision, recall, threshold
-
-        Parameters
-        ----------
-        reset : `bool`, optional (default = `False`)
-            Whether to clear concatenated predictions and labels.
-            Tensors concatenation is useful for getting metric results
-            for one batch and for an epoch.
-        """
+    def _get_metric(
+        self,
+        predictions: torch.FloatTensor,
+        labels: torch.FloatTensor
+    ) -> List[Dict[str, int]]:
         f1_metrics = []
-        for idx in range(self._all_labels.size(-1)):
-            prediction = self._all_predictions[:, idx]
-            labels = self._all_labels[:, idx]
+        for idx in range(labels.size(-1)):
+            prediction = predictions[:, idx]
+            labels = labels[:, idx]
             # PR-Curve
             precision, recall, _ = metrics.precision_recall_curve(
                 labels.numpy(),
@@ -88,9 +87,25 @@ class F1Metric(Metric):
                 'precision': precision[max_idx],
                 'recall': recall[max_idx]
             })
-        if reset:
-            self.reset()
         return f1_metrics
+
+    @overrides
+    def get_all_batches(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Get all accumulated batches for computing metric.
+        Returns tuple of two torch.Tensor where first one is predictions,
+        second one is labels.
+        """
+        return self._all_predictions, self._all_labels
+
+    @overrides
+    def get_last_batch(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Get last batch for computing metric.
+        Returns tuple of two torch.Tensor where first one is predictions,
+        second one is labels.
+        """
+        return self._batch_predictions, self._batch_labels
 
     @overrides
     def reset(self):
