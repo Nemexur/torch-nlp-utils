@@ -42,7 +42,7 @@ class AucMetric(Metric):
                 "Predictions and labels have different number of classes."
             )
         self._batch_predictions = predictions.detach().float()
-        self._batch_labels = predictions.detach().long()
+        self._batch_labels = labels.detach().long()
         self._all_predictions = torch.cat([
             self._all_predictions,
             self._batch_predictions
