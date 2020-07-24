@@ -1,3 +1,9 @@
+"""
+This file is adapted from the AllenNLP library at https://github.com/allenai/allennlp
+This implementation of Registrable is a bit simplified by getting rid of some special functionality.
+Copyright by the AllenNLP authors.
+"""
+
 from typing import (
     Type, Dict, Optional,
     List, T

@@ -45,6 +45,7 @@ def pad_3d_sequence(
                  [7., 8., 9., 6.],
                  [1., 2., 3., 0.]]])
     """
+    # Adopted from: https://discuss.pytorch.org/t/nested-list-of-variable-length-to-a-tensor/38699
     words = max_sent_length if max_sent_length else max([len(row) for batch in tokens for row in batch])
     sentences = max_sents if max_sents else max([len(batch) for batch in tokens])
     padded = [batch + [[0] * (words)] * (sentences - len(batch)) for batch in tokens]

@@ -49,6 +49,8 @@ def lazy_groups_of(iterable: Iterable[List[Any]], group_size: int) -> Iterator[L
     Takes an iterable and batches the individual instances into lists of the
     specified size. The last list may be smaller if there are instances left over.
     """
+    # lazy_groups_of adopted from:
+    # https://github.com/allenai/allennlp/blob/master/allennlp/common/util.py
     iterator = iter(iterable)
     while True:
         s = list(islice(iterator, group_size))

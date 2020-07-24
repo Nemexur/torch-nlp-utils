@@ -1,3 +1,10 @@
+"""
+This file is adapted from the AllenNLP library at https://github.com/allenai/allennlp
+Metric is slightly modified with additional functionality
+for computing metric on single batch.
+Copyright by the AllenNLP authors.
+"""
+
 from typing import List, Any, Tuple
 import torch
 import warnings

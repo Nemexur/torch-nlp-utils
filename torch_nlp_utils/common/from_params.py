@@ -1,3 +1,9 @@
+"""
+This file is adapted from the AllenNLP library at https://github.com/allenai/allennlp
+This implementation of FromParams is a bit simplified by getting rid of some special cases.
+Copyright by the AllenNLP authors.
+"""
+
 from typing import Type, T
 from loguru import logger
 from .checks import ConfigurationError

@@ -1,3 +1,10 @@
+"""
+This file is adapted from the AllenNLP library at https://github.com/allenai/allennlp
+This DatasetReader implementation is a bit simpler compared to AllenNLP DatasetReader
+and supports IterableDataset that can preload a certain amount of samples and iterator on them.
+Copyright by the AllenNLP authors.
+"""
+
 from typing import (
     Iterable, Any, Dict
 )
