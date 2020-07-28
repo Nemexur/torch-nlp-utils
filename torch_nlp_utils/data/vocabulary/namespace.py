@@ -24,7 +24,7 @@ class ProcessingType(Enum):
     """
     Enum of supported cases for namespace processing.
     - padding_oov - set padding as 0 and out-of-vocabulary as 1.
-    - oov - do not set padding and set out-of-vocabulary as 0.
+    - padding - do not set out-of-vocabulary token and set padding as 0.
     - just_encode - encode value starting from 0 and raise error for out-of-vocabulary tokens.
     - pass_through - skip any processing and return passed value on each call.
     """
@@ -37,11 +37,11 @@ class ProcessingType(Enum):
             NamespaceDict(DEFAULT_OOV_TOKEN, {0: DEFAULT_PADDING_TOKEN, 1: DEFAULT_OOV_TOKEN})
         ]
     )
-    oov = ProcessingTypeProperties(
+    padding = ProcessingTypeProperties(
         dict_type=NamespaceDict,
         dicts=[
-            NamespaceDict(0, {DEFAULT_OOV_TOKEN: 0}),
-            NamespaceDict(DEFAULT_OOV_TOKEN, {0: DEFAULT_OOV_TOKEN})
+            NamespaceDict(0, {DEFAULT_PADDING_TOKEN: 0}),
+            NamespaceDict(DEFAULT_PADDING_TOKEN, {0: DEFAULT_PADDING_TOKEN})
         ]
     )
     just_encode = ProcessingTypeProperties(
@@ -93,7 +93,7 @@ class Namespace:
         Type of processing associated with namespace.
         It supports such cases:
             - padding_oov - set padding as 0 and treat out-of-vocabulary tokens.
-            - oov - do not set padding and treat out-of-vocabulary tokens.
+            - padding - do not set out-of-vocabulary token and set padding as 0.
             - just_encode - encode value starting from 0 and raise error for out-of-vocabulary tokens.
             - pass_through - skip any processing and return passed value on each call.
     max_size : `int`, optional (default = `None`)
@@ -142,11 +142,11 @@ class Namespace:
         self._token_to_index[token] = token
         self._index_to_token[token] = token
 
-    @ProcessingType.register_for(case=[_PT.padding_oov, _PT.oov, _PT.just_encode])
+    @ProcessingType.register_for(case=[_PT.padding_oov, _PT.padding, _PT.just_encode])
     def _add_token(self, token: Any) -> None:
         """
         Function for adding token in case of
-        `processing_type=padding_oov/oov/just_encode`.
+        `processing_type=padding_oov/padding/just_encode`.
         """
         # max_size is None then we will never reach maximum capacity.
         not_reached_max = len(self._token_to_index) <= self._max_size if self._max_size else True
