@@ -1,6 +1,6 @@
 """
 This file is adapted from the AllenNLP library at https://github.com/allenai/allennlp
-This implementation of FromParams is a bit simplified by getting rid of some special cases.
+This implementation of FromParams is a bit simplified by getting rid of some special functionality.
 Copyright by the AllenNLP authors.
 """
 

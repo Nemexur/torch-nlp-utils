@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Any
 
 
 class EarlyStopping:
@@ -30,6 +30,11 @@ class EarlyStopping:
         self._should_stop = False
         self._best_metrics = {}
         self._max_patience = patience
+
+    @property
+    def best_metrics(self) -> Dict[str, Any]:
+        """Best metrics so far."""
+        return self._best_metrics
 
     @property
     def improved(self) -> bool:
