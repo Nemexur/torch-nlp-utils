@@ -93,7 +93,8 @@ class Vocabulary:
         def encoder(sample: Dict):
             return {
                 namespace: [self.token_to_index(token, namespace) for token in tokens]
-                if isinstance(tokens, Iterable) else self.token_to_index(tokens, namespace)
+                if isinstance(tokens, Iterable) and not isinstance(tokens, str)
+                else self.token_to_index(tokens, namespace)
                 for namespace, tokens in sample.items()
             }
         return encoder
