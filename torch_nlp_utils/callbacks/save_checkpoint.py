@@ -32,8 +32,11 @@ class SaveCheckpoint:
         self._directory = directory
         self._keep_num_checkpoints = keep_num_checkpoints
 
-    def __call__(self, metrics: Dict[str, Any]) -> None:
+    def __call__(self, metrics: Dict[str, Any], should_save: bool) -> None:
         """Perform saving after one epoch."""
+        if not should_save:
+            self._epoch_idx += 1
+            return
         cur_epoch_dir = os.path.join(self._directory, f'epoch_{self._epoch_idx}')
         os.makedirs(cur_epoch_dir, exist_ok=True)
         # Save torch model
