@@ -34,7 +34,7 @@ class PassThroughDict(DictModule):
         self._unique = set()
         self._eval_mode = False
 
-    def __getitem__(self, key: Any):
+    def __getitem__(self, key: int):
         # Convert to int as it works only with int values.
         key = int(key)
         if self._eval_mode:
@@ -47,7 +47,7 @@ class PassThroughDict(DictModule):
         else:
             return key
 
-    def __setitem__(self, key: Any, value: Any):
+    def __setitem__(self, key: int, value: Any):
         # Convert to int as it works only with int values.
         key = int(key)
         if not self._eval_mode:

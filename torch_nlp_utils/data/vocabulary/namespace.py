@@ -135,7 +135,7 @@ class Namespace:
     def _pass_through(self, token: Any) -> None:
         """Function for adding token in case of `processing_type=pass_through`."""
         if not isinstance(token, int):
-            return Exception(
+            raise Exception(
                 'processing_type=pass_through is only supported for int values.'
             )
         # json saves only strings as keys
