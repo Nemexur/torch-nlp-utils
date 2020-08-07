@@ -49,9 +49,9 @@ class Vocabulary:
 
     def _set_dependent_namespaces(self, namespaces: List[Namespace]) -> None:
         """Setup Namespaces that should have shared dicts."""
-        token_to_index, index_to_token = namespaces[0].token_to_index, namespaces[0].index_to_token
+        encoders = namespaces[0].encoders
         for namespace in namespaces:
-            namespace._token_to_index, namespace._index_to_token = token_to_index, index_to_token
+            namespace.encoders = encoders
 
     def _generate_vocab_from(self, datasets: Dict[str, Dataset]) -> None:
         """Generate vocab from `datasets`."""
@@ -112,6 +112,10 @@ class Vocabulary:
     def get_vocab_size(self, namespace: str = 'tokens') -> int:
         """Get size of vocabulary for a `namespace`."""
         return self._namespaces[namespace].get_size()
+
+    def get_statistics(self, namespace: str = 'tokens') -> Dict[str, Any]:
+        """Get statistics for a `namespace`."""
+        return self._namespaces[namespace].get_statistics()
 
     def token_to_index(self, token: Any, namespace: str = 'tokens') -> int:
         """Get index for `token` in a `namespace`."""

@@ -1,85 +1,28 @@
 from typing import (
-    Type, T, Dict, NamedTuple,
-    List, Callable, Union, Any
+    Type, T, Dict,
+    List, Any, Callable,
+    NamedTuple, Tuple
 )
 import os
 import json
-from enum import Enum
-from copy import deepcopy
-from .dicts import PassThroughDict, NamespaceDict
+from .dicts import DictModule
+from .statistics import Statistics
+from .processing_type import ProcessingType as PT
 from torch_nlp_utils.common.utils import save_params
 
 
-DEFAULT_PADDING_TOKEN = "@@PADDING@@"
-DEFAULT_OOV_TOKEN = "@@UNKNOWN@@"
+TARGET_TYPES: Dict[str, Callable[[], Statistics]] = {
+    'oneclass': lambda: Statistics.from_params(type='target'),
+    'multiclass': lambda: Statistics.from_params(type='target'),
+    'multilabel': lambda: Statistics.from_params(type='multilabel_target'),
+    'regression': lambda: Statistics.from_params(type='regression_target')
+}
 
 
-class ProcessingTypeProperties(NamedTuple):
-    """Properties for `ProcessingType` enum cases."""
-    dict_type: Type[T]
-    dicts: List[Dict]
-
-
-class ProcessingType(Enum):
-    """
-    Enum of supported cases for namespace processing.
-    - padding_oov - set padding as 0 and out-of-vocabulary as 1.
-    - padding - do not set out-of-vocabulary token and set padding as 0.
-    - just_encode - encode value starting from 0 and raise error for out-of-vocabulary tokens.
-    - pass_through - skip any processing and return passed value on each call.
-    """
-    __add_token_func__ = '__add_token_func__'
-
-    padding_oov = ProcessingTypeProperties(
-        dict_type=NamespaceDict,
-        dicts=[
-            NamespaceDict(1, {DEFAULT_PADDING_TOKEN: 0, DEFAULT_OOV_TOKEN: 1}),
-            NamespaceDict(DEFAULT_OOV_TOKEN, {0: DEFAULT_PADDING_TOKEN, 1: DEFAULT_OOV_TOKEN})
-        ]
-    )
-    padding = ProcessingTypeProperties(
-        dict_type=NamespaceDict,
-        dicts=[
-            NamespaceDict(0, {DEFAULT_PADDING_TOKEN: 0}),
-            NamespaceDict(DEFAULT_PADDING_TOKEN, {0: DEFAULT_PADDING_TOKEN})
-        ]
-    )
-    just_encode = ProcessingTypeProperties(
-        dict_type=NamespaceDict,
-        dicts=[NamespaceDict(), NamespaceDict()]
-    )
-    pass_through = ProcessingTypeProperties(
-        dict_type=PassThroughDict,
-        dicts=[PassThroughDict(), PassThroughDict()]
-    )
-
-    @property
-    def dict_type(self) -> Type[T]:
-        """Dict type associated with ProcessingType case."""
-        return self.value.dict_type
-
-    def get_dicts(self) -> List[Dict]:
-        """Get dicts for encoding data."""
-        return deepcopy(self.value.dicts)
-
-    @staticmethod
-    def register_for(
-        case: Union[Type[T], List[Type[T]]]
-    ) -> Callable:
-        """
-        Register certain function for processing ProcessingType case/cases.
-        We need this because it simplifies if/else for this enum.
-        """
-        case = case if isinstance(case, list) else [case]
-        def inner_decorator(func: Callable) -> Callable:  # noqa: E301
-            for c in case:
-                setattr(c, ProcessingType.__add_token_func__, func)
-            return func
-        return inner_decorator
-
-
-# Simple shortcut for ProcessingType Enum
-_PT = ProcessingType
+class Encoders(NamedTuple):
+    """NamedTuple of Encoder Dictionaries for a Namespace."""
+    token_to_index: DictModule
+    index_to_token: DictModule
 
 
 class Namespace:
@@ -98,73 +41,87 @@ class Namespace:
             - pass_through - skip any processing and return passed value on each call.
     max_size : `int`, optional (default = `None`)
         Max size of vocabulary for a namespace.
+    target : `str`, optional (default = `None`)
+        Target type if namespace is associated with target variable.
+        Supported types:
+            - oneclass - binary classification.
+            - multiclass - multiple classes classification.
+            - multilabel - classification with multilabels.
+            - regression - ordinary regression.
     """
     @save_params
     def __init__(
         self,
         processing_type: str,
         max_size: int = None,
+        target: str = None
     ) -> None:
-        if not hasattr(_PT, processing_type):
+        if not hasattr(PT, processing_type):
             raise ValueError('Invalid processing type has been passed.')
         if max_size is not None and max_size <= 0:
             raise Exception('Max size can not be less or equal 0.')
-        self._from_saved = False
+        if target is not None and target not in TARGET_TYPES:
+            raise Exception('Invalid target type.')
         self._max_size = max_size
-        self._processing_type = getattr(_PT, processing_type)
-        self._token_to_index, self._index_to_token = self._processing_type.get_dicts()
+        self._processing_type = getattr(PT, processing_type)
+        self._encoders = Encoders(*self._processing_type.get_dicts())
+        self.statistics = TARGET_TYPES[target]() if target else Statistics()
+
+    @property
+    def encoders(self) -> Tuple[DictModule, DictModule]:
+        return self._encoders
+
+    @encoders.setter
+    def encoders(self, encoders: Tuple[DictModule, DictModule]) -> None:
+        self._encoders = encoders
 
     def add_tokens(self, tokens: List[Any]) -> None:
-        """
-        Add tokens to namespace.
-
-        Parameters
-        ----------
-        tokens : `List[Any]`, required
-            Tokens to add.
-        """
+        """Add list of `tokens` to namespace."""
         for token in tokens:
-            if not hasattr(self._processing_type, _PT.__add_token_func__):
+            if not hasattr(self._processing_type, PT.__add_token_func__):
                 raise Exception(
                     f'You need to register func to add tokens for {self._processing_type.name}.'
                 )
             # We need to pass self as well
-            getattr(self._processing_type, _PT.__add_token_func__)(self, token)
+            getattr(self._processing_type, PT.__add_token_func__)(self, token)
+        # Update statistics at last.
+        self.statistics.update_stats(tokens)
 
-    @ProcessingType.register_for(case=_PT.pass_through)
+    @PT.register_for(case=PT.pass_through)
     def _pass_through(self, token: Any) -> None:
         """Function for adding token in case of `processing_type=pass_through`."""
-        if not isinstance(token, int):
+        if not (isinstance(token, int) or str(token).isdigit()):
             raise Exception(
                 'processing_type=pass_through is only supported for int values.'
             )
-        # json saves only strings as keys
-        self._token_to_index[token] = token
-        self._index_to_token[token] = token
+        self._encoders.token_to_index[token] = token
+        self._encoders.index_to_token[token] = token
 
-    @ProcessingType.register_for(case=[_PT.padding_oov, _PT.padding, _PT.just_encode])
+    @PT.register_for(case=[PT.padding_oov, PT.padding, PT.just_encode])
     def _add_token(self, token: Any) -> None:
         """
         Function for adding token in case of
         `processing_type=padding_oov/padding/just_encode`.
         """
         # max_size is None then we will never reach maximum capacity.
-        not_reached_max = len(self._token_to_index) <= self._max_size if self._max_size else True
-        if token not in self._token_to_index and not_reached_max:
-            index = len(self._token_to_index)
+        not_reached_max = len(self._encoders.token_to_index) <= self._max_size if self._max_size else True
+        if token not in self._encoders.token_to_index and not_reached_max:
+            index = len(self._encoders.token_to_index)
             # json saves only strings as keys
-            self._token_to_index[str(token)] = index
-            self._index_to_token[str(index)] = token
+            self._encoders.token_to_index[str(token)] = index
+            self._encoders.index_to_token[str(index)] = token
 
     @classmethod
     def load(cls: Type[T], path: str) -> T:
         """Load class from `path`. Path is a directory title."""
         with open(os.path.join(path, 'config.json'), 'r', encoding='utf-8') as file:
             namespace = cls(**json.load(file))
-        namespace._from_saved = True
         dict_type = namespace._processing_type.dict_type
-        namespace._token_to_index = dict_type.load(os.path.join(path, 'token_to_index.json'))
-        namespace._index_to_token = dict_type.load(os.path.join(path, 'index_to_token.json'))
+        namespace.encoders = Encoders(
+            token_to_index=dict_type.load(os.path.join(path, 'token_to_index.json')),
+            index_to_token=dict_type.load(os.path.join(path, 'index_to_token.json'))
+        )
+        namespace.statistics = namespace.statistics.__class__.load(os.path.join(path, 'statistics.json'))
         namespace.eval()
         return namespace
 
@@ -173,24 +130,29 @@ class Namespace:
         os.makedirs(path, exist_ok=True)
         with open(os.path.join(path, 'config.json'), 'w', encoding='utf-8') as file:
             json.dump(self.__func_params__['__init__'], file, ensure_ascii=False, indent=2)
-        self._token_to_index.save(os.path.join(path, 'token_to_index.json'))
-        self._index_to_token.save(os.path.join(path, 'index_to_token.json'))
+        self._encoders.token_to_index.save(os.path.join(path, 'token_to_index.json'))
+        self._encoders.index_to_token.save(os.path.join(path, 'index_to_token.json'))
+        self.statistics.save(os.path.join(path, 'statistics.json'))
 
     def eval(self) -> None:
         """Set evaluation mode."""
-        self._token_to_index.eval()
-        self._index_to_token.eval()
+        self._encoders.token_to_index.eval()
+        self._encoders.index_to_token.eval()
+
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get statistics for the namespace."""
+        return self.statistics.get_statistics()
 
     def get_size(self) -> int:
         """Return the number of unique tokens registered for namespace."""
-        return len(self._token_to_index)
+        return len(self._encoders.token_to_index)
 
     def token_to_index(self, token: Any) -> int:
         """Get index for `token`."""
         # Convert to string as json stores only string keys.
-        return self._token_to_index[str(token)]
+        return self._encoders.token_to_index[str(token)]
 
     def index_to_token(self, index: int) -> Any:
         """Get token for `index`."""
         # Convert to string as json stores only string keys.
-        return self._index_to_token[str(index)]
+        return self._encoders.index_to_token[str(index)]
