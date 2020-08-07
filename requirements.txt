@@ -1,5 +1,4 @@
 tqdm
-boto3
 loguru
 overrides
 torch==1.5.0
