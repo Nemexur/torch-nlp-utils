@@ -26,11 +26,6 @@ class FromParams:
 
         from .registrable import Registrable  # import here to avoid circular imports
 
-        logger.info(
-            f"Instantiating class {cls} from params.",
-            feature='f-strings'
-        )
-
         if params is None:
             raise ConfigurationError(
                 "We cannot instantiate any class with params as None."

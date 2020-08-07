@@ -80,14 +80,15 @@ class MemorySizedDatasetInstances(IterableDataset, Encodable):
         instances = self._instance_generator()
         if isinstance(instances, list):
             raise ConfigurationError(
-                "For a lazy dataset reader, _read() must return a generator"
+                "For a lazy dataset reader, _read() must return a generator."
             )
         for instance in lazy_groups_of(instances, self._max_instances_in_memory):
-            yield self.encode(instance)
+            # Returns list of instances.
+            yield [self.encode(x) for x in instance]
 
     def __len__(self):
         """
         Return max_instances_in_memory for IterableDataset
-        as we keep in-memory only this many instances at a time
+        as we keep in-memory only this many instances at a time.
         """
         return self._max_instances_in_memory
