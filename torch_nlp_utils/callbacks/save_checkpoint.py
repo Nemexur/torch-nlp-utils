@@ -42,11 +42,11 @@ class SaveCheckpoint:
         # Save torch model
         torch.save(
             self._model.state_dict(),
-            os.path.join(cur_epoch_dir, f'epoch_{self._epoch_idx}.pt')
+            os.path.join(cur_epoch_dir, 'model.pt')
         )
         # Save metrics
         with open(
-            os.path.join(cur_epoch_dir, f'epoch_{self._epoch_idx}_metrics.json'),
+            os.path.join(cur_epoch_dir, 'metrics.json'),
             mode='w',
             encoding='utf-8'
         ) as file:
