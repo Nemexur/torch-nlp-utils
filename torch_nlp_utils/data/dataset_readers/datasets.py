@@ -1,7 +1,4 @@
-from typing import (
-    List, Callable,
-    Iterable, Iterator, Any
-)
+from typing import List, Callable, Iterable, Iterator, Any
 from torch.utils.data import Dataset, IterableDataset
 from torch_nlp_utils.data.vocabulary import Vocabulary
 from torch_nlp_utils.common.utils import lazy_groups_of
@@ -36,19 +33,15 @@ class LazyDatasetInstances(IterableDataset, Encodable):
     An `Iterable` that just wraps a thunk for generating instances and calls it for
     each call to `__iter__`.
     """
-    def __init__(
-        self,
-        instance_generator: Callable[[], Iterable[List[Any]]]
-    ) -> None:
+
+    def __init__(self, instance_generator: Callable[[], Iterable[List[Any]]]) -> None:
         super().__init__()
         self._instance_generator = instance_generator
 
     def __iter__(self) -> Iterator[List[Any]]:
         instances = self._instance_generator()
         if isinstance(instances, list):
-            raise ConfigurationError(
-                "For a lazy dataset reader, _read() must return a generator."
-            )
+            raise ConfigurationError("For a lazy dataset reader, _read() must return a generator.")
         for instance in instances:
             yield self.encode(instance)
 
@@ -67,10 +60,9 @@ class MemorySizedDatasetInstances(IterableDataset, Encodable):
     For instance, if the dataset is lazily read from disk and we've specified to
     load 1000 instances at a time, then it yields lists of 1000 instances each.
     """
+
     def __init__(
-        self,
-        instance_generator: Callable[[], Iterable[List[Any]]],
-        max_instances_in_memory: int
+        self, instance_generator: Callable[[], Iterable[List[Any]]], max_instances_in_memory: int
     ) -> None:
         super().__init__()
         self._instance_generator = instance_generator
@@ -79,9 +71,7 @@ class MemorySizedDatasetInstances(IterableDataset, Encodable):
     def __iter__(self):
         instances = self._instance_generator()
         if isinstance(instances, list):
-            raise ConfigurationError(
-                "For a lazy dataset reader, _read() must return a generator."
-            )
+            raise ConfigurationError("For a lazy dataset reader, _read() must return a generator.")
         for instance in lazy_groups_of(instances, self._max_instances_in_memory):
             # Returns list of instances.
             yield [self.encode(x) for x in instance]

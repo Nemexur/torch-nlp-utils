@@ -8,6 +8,7 @@ class DictModule(dict):
     Module for dictionary that adds:
     loading, saving and evaluation for particular dict subclass.
     """
+
     def eval(self) -> None:
         """Set evaluation mode."""
         pass
@@ -29,6 +30,7 @@ class PassThroughDict(DictModule):
     incase you try to get an item
     that has not been in train data.
     """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._unique = set()
@@ -41,9 +43,7 @@ class PassThroughDict(DictModule):
             if key in self._unique:
                 return key
             else:
-                raise Exception(
-                    'Invalid key has been passed. It was not in train.'
-                )
+                raise Exception("Invalid key has been passed. It was not in train.")
         else:
             return key
 
@@ -64,14 +64,14 @@ class PassThroughDict(DictModule):
     @overrides
     def save(self, path: str) -> None:
         """Save data at `path`."""
-        with open(path, 'w', encoding='utf-8') as file:
+        with open(path, "w", encoding="utf-8") as file:
             json.dump(list(self._unique), file, ensure_ascii=False, indent=2)
 
     @classmethod
     def load(cls: Type[T], path: str) -> T:
         """Load class from `path`."""
         cls_instance = cls()
-        with open(path, 'r', encoding='utf-8') as file:
+        with open(path, "r", encoding="utf-8") as file:
             cls_instance._unique = set(json.load(file))
         return cls_instance
 
@@ -86,6 +86,7 @@ class NamespaceDict(DictModule):
     If `oov` is None then we do not consider that
     there could be out-of-vocabulary tokens
     """
+
     def __init__(self, oov: Any = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._oov = oov
@@ -100,22 +101,22 @@ class NamespaceDict(DictModule):
 
     def __missing__(self, key: Any):
         if self._oov is None:
-            raise Exception('Invalid key.')
+            raise Exception("Invalid key.")
         return self._oov
 
     @overrides
     def save(self, path: str) -> None:
         """Save data at `path`."""
-        params = {'oov_value': self._oov, 'dict': dict(self)}
-        with open(path, 'w', encoding='utf-8') as file:
+        params = {"oov_value": self._oov, "dict": dict(self)}
+        with open(path, "w", encoding="utf-8") as file:
             json.dump(params, file, ensure_ascii=False, indent=2)
 
     @classmethod
     def load(cls: Type[T], path: str) -> T:
         """Load class from `path`."""
         cls_instance = cls()
-        with open(path, 'r', encoding='utf-8') as file:
+        with open(path, "r", encoding="utf-8") as file:
             params = json.load(file)
-            cls_instance.oov_value = params['oov_value']
-            cls_instance.update(params['dict'])
+            cls_instance.oov_value = params["oov_value"]
+            cls_instance.update(params["dict"])
         return cls_instance

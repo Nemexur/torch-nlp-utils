@@ -1,8 +1,4 @@
-from typing import (
-    Iterable, List, Any,
-    Iterator, Type,
-    Callable, T
-)
+from typing import Iterable, List, Any, Iterator, Type, Callable, T
 import os
 import inspect
 from itertools import islice
@@ -10,7 +6,7 @@ from functools import partialmethod
 from torch_nlp_utils.settings import ROOT_DIR
 
 # Constants
-CACHE_DIRECTORY = os.path.join(ROOT_DIR, '.torch_nlp_utils_cache')
+CACHE_DIRECTORY = os.path.join(ROOT_DIR, ".torch_nlp_utils_cache")
 
 
 def partialclass(cls: Type[T], *args, **kwargs) -> Type[T]:
@@ -20,8 +16,10 @@ def partialclass(cls: Type[T], *args, **kwargs) -> Type[T]:
     `Args` and `kwargs` are parameters that needs to be fixed
     for class init.
     """
+
     class PartialCls(cls):
         __init__ = partialmethod(cls.__init__, *args, **kwargs)
+
     return PartialCls
 
 
@@ -33,14 +31,14 @@ def save_params(func: Callable) -> Callable:
     that doesn't have `*args` in its arguments list.
     This decorator only saves parameters for the latest call.
     """
+
     def wrapper(cls: Type[T], *args, **kwargs) -> Callable:
-        cls.__func_params__ = getattr(cls, '__func_params__', {})
-        call_params = {
-            arg: value for arg, value in zip(inspect.getfullargspec(func).args[1:], args)
-        }
+        cls.__func_params__ = getattr(cls, "__func_params__", {})
+        call_params = {arg: value for arg, value in zip(inspect.getfullargspec(func).args[1:], args)}
         call_params.update(kwargs)
         cls.__func_params__[func.__name__] = call_params
         return func(cls, *args, **kwargs)
+
     return wrapper
 
 

@@ -1,8 +1,4 @@
-from typing import (
-    Type, T, Dict,
-    List, Any, Callable,
-    NamedTuple, Tuple
-)
+from typing import Type, T, Dict, List, Any, Callable, NamedTuple, Tuple
 import os
 import json
 from .dicts import DictModule
@@ -12,15 +8,16 @@ from torch_nlp_utils.common.utils import save_params
 
 
 TARGET_TYPES: Dict[str, Callable[[], Statistics]] = {
-    'oneclass': lambda: Statistics.from_params(type='target'),
-    'multiclass': lambda: Statistics.from_params(type='target'),
-    'multilabel': lambda: Statistics.from_params(type='multilabel_target'),
-    'regression': lambda: Statistics.from_params(type='regression_target')
+    "oneclass": lambda: Statistics.from_params(type="target"),
+    "multiclass": lambda: Statistics.from_params(type="target"),
+    "multilabel": lambda: Statistics.from_params(type="multilabel_target"),
+    "regression": lambda: Statistics.from_params(type="regression_target"),
 }
 
 
 class Encoders(NamedTuple):
     """NamedTuple of Encoder Dictionaries for a Namespace."""
+
     token_to_index: DictModule
     index_to_token: DictModule
 
@@ -49,19 +46,15 @@ class Namespace:
             - multilabel - classification with multilabels.
             - regression - ordinary regression.
     """
+
     @save_params
-    def __init__(
-        self,
-        processing_type: str,
-        max_size: int = None,
-        target: str = None
-    ) -> None:
+    def __init__(self, processing_type: str, max_size: int = None, target: str = None) -> None:
         if not hasattr(PT, processing_type):
-            raise ValueError('Invalid processing type has been passed.')
+            raise ValueError("Invalid processing type has been passed.")
         if max_size is not None and max_size <= 0:
-            raise Exception('Max size can not be less or equal 0.')
+            raise Exception("Max size can not be less or equal 0.")
         if target is not None and target not in TARGET_TYPES:
-            raise Exception('Invalid target type.')
+            raise Exception("Invalid target type.")
         self._max_size = max_size
         self._processing_type = getattr(PT, processing_type)
         self._encoders = Encoders(*self._processing_type.get_dicts())
@@ -79,9 +72,7 @@ class Namespace:
         """Add list of `tokens` to namespace."""
         for token in tokens:
             if not hasattr(self._processing_type, PT.__add_token_func__):
-                raise Exception(
-                    f'You need to register func to add tokens for {self._processing_type.name}.'
-                )
+                raise Exception(f"You need to register func to add tokens for {self._processing_type.name}.")
             # We need to pass self as well
             getattr(self._processing_type, PT.__add_token_func__)(self, token)
         # Update statistics at last.
@@ -91,9 +82,7 @@ class Namespace:
     def _pass_through(self, token: Any) -> None:
         """Function for adding token in case of `processing_type=pass_through`."""
         if not (isinstance(token, int) or str(token).isdigit()):
-            raise Exception(
-                'processing_type=pass_through is only supported for int values.'
-            )
+            raise Exception("processing_type=pass_through is only supported for int values.")
         self._encoders.token_to_index[token] = token
         self._encoders.index_to_token[token] = token
 
@@ -114,25 +103,26 @@ class Namespace:
     @classmethod
     def load(cls: Type[T], path: str) -> T:
         """Load class from `path`. Path is a directory title."""
-        with open(os.path.join(path, 'config.json'), 'r', encoding='utf-8') as file:
+        with open(os.path.join(path, "config.json"), "r", encoding="utf-8") as file:
             namespace = cls(**json.load(file))
         dict_type = namespace._processing_type.dict_type
         namespace.encoders = Encoders(
-            token_to_index=dict_type.load(os.path.join(path, 'token_to_index.json')),
-            index_to_token=dict_type.load(os.path.join(path, 'index_to_token.json'))
+            token_to_index=dict_type.load(os.path.join(path, "token_to_index.json")),
+            index_to_token=dict_type.load(os.path.join(path, "index_to_token.json")),
         )
-        namespace.statistics = namespace.statistics.__class__.load(os.path.join(path, 'statistics.json'))
+        # TODO: Rewrite it. Looks like a crutch
+        namespace.statistics = namespace.statistics.__class__.load(os.path.join(path, "statistics.json"))
         namespace.eval()
         return namespace
 
     def save(self, path: str) -> None:
         """Save data at `path`. You should pass a directory title."""
         os.makedirs(path, exist_ok=True)
-        with open(os.path.join(path, 'config.json'), 'w', encoding='utf-8') as file:
-            json.dump(self.__func_params__['__init__'], file, ensure_ascii=False, indent=2)
-        self._encoders.token_to_index.save(os.path.join(path, 'token_to_index.json'))
-        self._encoders.index_to_token.save(os.path.join(path, 'index_to_token.json'))
-        self.statistics.save(os.path.join(path, 'statistics.json'))
+        with open(os.path.join(path, "config.json"), "w", encoding="utf-8") as file:
+            json.dump(self.__func_params__["__init__"], file, ensure_ascii=False, indent=2)
+        self._encoders.token_to_index.save(os.path.join(path, "token_to_index.json"))
+        self._encoders.index_to_token.save(os.path.join(path, "index_to_token.json"))
+        self.statistics.save(os.path.join(path, "statistics.json"))
 
     def eval(self) -> None:
         """Set evaluation mode."""

@@ -1,11 +1,5 @@
-from typing import (
-    Iterable, Dict,
-    List, DefaultDict,
-    Callable, Any
-)
-from torch_nlp_utils.data.dataset_readers.datasets import (
-    MemorySizedDatasetInstances, DatasetInstances
-)
+from typing import Iterable, Dict, List, DefaultDict, Callable, Any
+from torch_nlp_utils.data.dataset_readers.datasets import MemorySizedDatasetInstances, DatasetInstances
 from functools import wraps
 from collections import defaultdict
 from torch.utils.data import DataLoader, Dataset
@@ -22,13 +16,14 @@ class Batch:
     Dictionary instance `{'tokens': ..., 'labels': ...}`
     then to access tokens you need to get an `attribute tokens` from `Batch` class instance.
     """
+
     def __init__(self, instances: Iterable[Dict[str, List]]) -> None:
         tensor_dict = self._as_tensor_dict_from(instances)
         self.__dict__.update(tensor_dict)
 
     def __repr__(self) -> str:
         cls = str(self.__class__.__name__)
-        info = ', '.join(map(lambda x: f"{x[0]}={x[1]}", self.__dict__.items()))
+        info = ", ".join(map(lambda x: f"{x[0]}={x[1]}", self.__dict__.items()))
         return f"{cls}({info})"
 
     @staticmethod
@@ -52,9 +47,11 @@ class Batch:
 
 def custom_collate(collate_fn: Callable) -> Callable:
     """Decorator for PyTorch collate function."""
+
     @wraps(collate_fn)
     def wrapper(instances: Iterable[Dict[str, List]]) -> Any:
         return collate_fn(Batch(instances))
+
     return wrapper
 
 
@@ -68,26 +65,17 @@ class DataIterator:
     `P.S.`: if `max_instances_in_memory` is not None for `DatasetReader` you can pass additional
     sampling methods for `torch.utils.data.DataLoader`
     """
-    def __init__(
-        self,
-        dataset: Dataset,
-        collate_fn: Callable,
-        *args, **kwargs
-    ) -> None:
+
+    def __init__(self, dataset: Dataset, collate_fn: Callable, *args, **kwargs) -> None:
         self._dataset = dataset
-        self._is_memory_sized_dataset = isinstance(
-            dataset,
-            MemorySizedDatasetInstances
-        )
+        self._is_memory_sized_dataset = isinstance(dataset, MemorySizedDatasetInstances)
         if not self._is_memory_sized_dataset:
             self._dataloader: DataLoader = DataLoader(
-                dataset, collate_fn=custom_collate(collate_fn),
-                *args, **kwargs
+                dataset, collate_fn=custom_collate(collate_fn), *args, **kwargs
             )
         else:
             self._dataloader: DataLoader = partialclass(
-                DataLoader, collate_fn=custom_collate(collate_fn),
-                *args, **kwargs
+                DataLoader, collate_fn=custom_collate(collate_fn), *args, **kwargs
             )
 
     def __len__(self):

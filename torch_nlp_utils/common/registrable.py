@@ -4,10 +4,7 @@ This implementation of Registrable is a bit simplified by getting rid of some sp
 Copyright by the AllenNLP authors.
 """
 
-from typing import (
-    Type, Dict, Optional,
-    List, T
-)
+from typing import Type, Dict, Optional, List, T
 from loguru import logger
 from collections import defaultdict
 from .from_params import FromParams
@@ -23,6 +20,7 @@ class Registrable(FromParams):
     Note that the registry stores the subclasses themselves; not class instances.
     In most cases you would then call `from_params(params)` on the returned subclass.
     """
+
     _registry: Dict[Type, Dict[str, Type]] = defaultdict(dict)
 
     @classmethod
@@ -89,9 +87,7 @@ class Registrable(FromParams):
             return Registrable._registry[cls].get(name)
         else:
             # is not a qualified class name
-            raise ConfigurationError(
-                f"{name} is not a registered name for {cls.__name__}."
-            )
+            raise ConfigurationError(f"{name} is not a registered name for {cls.__name__}.")
 
     @classmethod
     def list_available(cls) -> List[str]:

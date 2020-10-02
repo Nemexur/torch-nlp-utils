@@ -7,13 +7,12 @@ Copyright by the AllenNLP authors.
 
 from typing import List, Any, Tuple
 import torch
-import warnings
 from abc import ABCMeta, abstractmethod
-warnings.filterwarnings('ignore')
 
 
 class Metric(metaclass=ABCMeta):
     """Default Class for any Metric for One-Label and Multi-Label Tasks."""
+
     def __init__(self, accum_batches: bool = False):
         self._accum_batchs = accum_batches
 
@@ -32,20 +31,13 @@ class Metric(metaclass=ABCMeta):
             predictions, labels = self.get_all_batches()
         else:
             predictions, labels = self.get_last_batch()
-        metrics = self._get_metric(
-            predictions=predictions,
-            labels=labels
-        )
+        metrics = self._get_metric(predictions=predictions, labels=labels)
         if reset:
             self.reset()
         return metrics
 
     @abstractmethod
-    def __call__(
-        self,
-        predictions: torch.Tensor,
-        labels: torch.Tensor
-    ) -> None:
+    def __call__(self, predictions: torch.Tensor, labels: torch.Tensor) -> None:
         """
         Save predictions and labels.
 
@@ -60,11 +52,7 @@ class Metric(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _get_metric(
-        self,
-        predictions: torch.Tensor,
-        labels: torch.Tensor
-    ) -> List[Any]:
+    def _get_metric(self, predictions: torch.Tensor, labels: torch.Tensor) -> List[Any]:
         """
         Compute metric for certain labels and predictions.
 

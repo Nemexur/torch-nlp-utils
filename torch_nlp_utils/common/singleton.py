@@ -7,6 +7,7 @@ class Singleton:
     By definition of a `Singleton` pattern this class must not accept any arguments
     during initialization so this `decorator` works only with such classes.
     """
+
     _registry: Dict[str, Type[T]] = {}
 
     def __init__(self, cls: Type[T]) -> None:

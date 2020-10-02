@@ -1,7 +1,4 @@
-from typing import (
-    Dict, Callable, Any,
-    Type, T, List, Iterable
-)
+from typing import Dict, Callable, Any, Type, T, List, Iterable
 import os
 from tqdm import tqdm
 from copy import deepcopy
@@ -28,17 +25,15 @@ class Vocabulary:
     dependent_namespaces : `List[List[str]]`, optional (default = `[]`)
         Set namespaces that should share its vocabulary.
     """
+
     def __init__(
         self,
         datasets: Dict[str, Dataset] = {},
         namespaces: Dict[str, Namespace] = {},
-        dependent_namespaces: List[List[str]] = []
+        dependent_namespaces: List[List[str]] = [],
     ) -> None:
         if (datasets and not namespaces) or (not datasets and namespaces):
-            raise Exception(
-                'You need to define both datasets and namespaces '
-                'or set them empty.'
-            )
+            raise Exception("You need to define both datasets and namespaces " "or set them empty.")
         self._namespaces = deepcopy(namespaces)
         for d_namespaces in dependent_namespaces:
             self._set_dependent_namespaces([self._namespaces[x] for x in d_namespaces])
@@ -56,18 +51,18 @@ class Vocabulary:
     def _generate_vocab_from(self, datasets: Dict[str, Dataset]) -> None:
         """Generate vocab from `datasets`."""
         for type, dataset in datasets.items():
-            for sample in tqdm(dataset, desc=f'Iterating {type}'):
+            for sample in tqdm(dataset, desc=f"Iterating {type}"):
                 self._add_sample_to_namespace(sample)
 
     def _add_sample_to_namespace(self, sample: Dict[str, Any]) -> None:
         """Add one `sample` to certain namespaces defined by data."""
         for namespace, data in sample.items():
             if namespace not in self._namespaces:
-                raise Exception('Unrecognized namespace occurred.')
+                raise Exception("Unrecognized namespace occurred.")
             tokens = data if isinstance(data, list) else [data]
             self._namespaces[namespace].add_tokens(tokens)
 
-    def save(self, path: str = 'vocabulary') -> None:
+    def save(self, path: str = "vocabulary") -> None:
         """
         Save data at `path`.
         You should pass a directory title
@@ -79,7 +74,7 @@ class Vocabulary:
             namespace_cls.save(namespace_dir)
 
     @classmethod
-    def from_files(cls: Type[T], path: str = 'vocabulary') -> T:
+    def from_files(cls: Type[T], path: str = "vocabulary") -> T:
         """Load `Vocabulary` instance from files in directory at `path`."""
         vocab = cls()
         namespaces = os.listdir(path)
@@ -90,6 +85,7 @@ class Vocabulary:
 
     def get_encoder(self) -> Callable:
         """Get encoder for tokens (token -> index)."""
+
         def encoder(sample: Dict):
             return {
                 namespace: [self.token_to_index(token, namespace) for token in tokens]
@@ -97,44 +93,40 @@ class Vocabulary:
                 else self.token_to_index(tokens, namespace)
                 for namespace, tokens in sample.items()
             }
+
         return encoder
 
     def get_decoder(self) -> Callable:
         """Get decoder for tokens (index -> token)."""
+
         def decoder(sample: Dict):
             return {
                 namespace: [self.index_to_token(index, namespace) for index in indexes]
-                if isinstance(indexes, Iterable) else self.index_to_token(indexes, namespace)
+                if isinstance(indexes, Iterable)
+                else self.index_to_token(indexes, namespace)
                 for namespace, indexes in sample.items()
             }
+
         return decoder
 
-    def get_vocab_size(self, namespace: str = 'tokens') -> int:
+    def get_vocab_size(self, namespace: str = "tokens") -> int:
         """Get size of vocabulary for a `namespace`."""
         return self._namespaces[namespace].get_size()
 
-    def get_statistics(self, namespace: str = 'tokens') -> Dict[str, Any]:
+    def get_statistics(self, namespace: str = "tokens") -> Dict[str, Any]:
         """Get statistics for a `namespace`."""
         return self._namespaces[namespace].get_statistics()
 
-    def token_to_index(self, token: Any, namespace: str = 'tokens') -> int:
+    def token_to_index(self, token: Any, namespace: str = "tokens") -> int:
         """Get index for `token` in a `namespace`."""
         try:
             return self._namespaces[namespace].token_to_index(token)
         except Exception as err:
-            raise Exception(
-                f'\nUnexpected error occurred: {err}\n'
-                f'Namespace: {namespace} '
-                f'Token: {token}'
-            )
+            raise Exception(f"\nUnexpected error occurred: {err}\n" f"Namespace: {namespace} " f"Token: {token}")
 
-    def index_to_token(self, index: int, namespace: str = 'tokens') -> Any:
+    def index_to_token(self, index: int, namespace: str = "tokens") -> Any:
         """Get token for `index` in a `namespace`."""
         try:
             return self._namespaces[namespace].index_to_token(index)
         except Exception as err:
-            raise Exception(
-                f'\nUnexpected error occurred: {err}.\n'
-                f'Namespace: {namespace} '
-                f'Index: {index}'
-            )
+            raise Exception(f"\nUnexpected error occurred: {err}.\n" f"Namespace: {namespace} " f"Index: {index}")

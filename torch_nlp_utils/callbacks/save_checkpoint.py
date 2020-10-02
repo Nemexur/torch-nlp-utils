@@ -18,6 +18,7 @@ class SaveCheckpoint:
     keep_num_checkpoints : `int`, optional (default = `None`)
         Number of checkpoints to keep. If None then keep all of them.
     """
+
     def __init__(
         self,
         model: torch.nn.Module,
@@ -26,7 +27,7 @@ class SaveCheckpoint:
     ) -> None:
         os.makedirs(directory, exist_ok=False)
         if keep_num_checkpoints is not None and keep_num_checkpoints < 1:
-            raise Exception('keep_num_checkpoints should be greater than 0')
+            raise Exception("keep_num_checkpoints should be greater than 0")
         self._epoch_idx = 0
         self._model = model
         self._directory = directory
@@ -37,19 +38,12 @@ class SaveCheckpoint:
         if not should_save:
             self._epoch_idx += 1
             return
-        cur_epoch_dir = os.path.join(self._directory, f'epoch_{self._epoch_idx}')
+        cur_epoch_dir = os.path.join(self._directory, f"epoch_{self._epoch_idx}")
         os.makedirs(cur_epoch_dir, exist_ok=True)
         # Save torch model
-        torch.save(
-            self._model.state_dict(),
-            os.path.join(cur_epoch_dir, 'model.pt')
-        )
+        torch.save(self._model.state_dict(), os.path.join(cur_epoch_dir, "model.pt"))
         # Save metrics
-        with open(
-            os.path.join(cur_epoch_dir, 'metrics.json'),
-            mode='w',
-            encoding='utf-8'
-        ) as file:
+        with open(os.path.join(cur_epoch_dir, "metrics.json"), mode="w", encoding="utf-8") as file:
             json.dump(metrics, file, ensure_ascii=False, indent=2)
         self._epoch_idx += 1
         if self._keep_num_checkpoints:

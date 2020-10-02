@@ -5,13 +5,8 @@ and supports IterableDataset that can preload a certain amount of samples and it
 Copyright by the AllenNLP authors.
 """
 
-from typing import (
-    Iterable, Any, Dict
-)
-from .datasets import (
-    DatasetInstances, LazyDatasetInstances,
-    MemorySizedDatasetInstances
-)
+from typing import Iterable, Any, Dict
+from .datasets import DatasetInstances, LazyDatasetInstances, MemorySizedDatasetInstances
 from tqdm import tqdm
 from abc import ABCMeta, abstractmethod
 from torch.utils.data import Dataset, IterableDataset
@@ -37,11 +32,8 @@ class DatasetReader(metaclass=ABCMeta):
         could be useful if your instances are read lazily from disk and you want
         to perform some kind of additional sampling.
     """
-    def __init__(
-        self,
-        lazy: bool = True,
-        max_instances_in_memory: int = None
-    ) -> None:
+
+    def __init__(self, lazy: bool = True, max_instances_in_memory: int = None) -> None:
         self._lazy = lazy
         self._max_instances_in_memory = max_instances_in_memory
 
@@ -73,21 +65,16 @@ class DatasetReader(metaclass=ABCMeta):
                     max_instances_in_memory=self._max_instances_in_memory
                 )
             else:
-                instances: IterableDataset = LazyDatasetInstances(
-                    lambda: self._read(file_path)
-                )
+                instances: IterableDataset = LazyDatasetInstances(lambda: self._read(file_path))
         else:
             instances = self._read(file_path)
 
             # Then some validation.
             if not isinstance(instances, list):
-                instances = [
-                    instance for instance in tqdm(instances, desc='Reading dataset in memory')
-                ]
+                instances = [instance for instance in tqdm(instances, desc="Reading dataset in memory")]
             if not instances:
                 raise ConfigurationError(
-                    "No instances were read from the given filepath {}. "
-                    "Is the path correct?".format(file_path)
+                    "No instances were read from the given filepath {}. " "Is the path correct?".format(file_path)
                 )
             instances: Dataset = DatasetInstances(instances)
         return instances

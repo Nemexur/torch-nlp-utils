@@ -14,17 +14,16 @@ class EarlyStopping:
         Which metric to monitor in such formath: {- or +}{metric_name}.
         Example: -loss it means loss metric should decrease.
     """
+
     def __init__(self, patience: int, metric: str):
         if metric[0] == "-":
             self._is_better = lambda old, new: old > new
-            self._old_metric = float('inf')
+            self._old_metric = float("inf")
         elif metric[0] == "+":
             self._is_better = lambda old, new: old < new
-            self._old_metric = -float('inf')
+            self._old_metric = -float("inf")
         else:
-            raise Exception(
-                "You should pass '-' or '+' at the beginning of metric."
-            )
+            raise Exception("You should pass '-' or '+' at the beginning of metric.")
         self._patience = 0
         self._metric = metric[1:]
         self._should_stop = False

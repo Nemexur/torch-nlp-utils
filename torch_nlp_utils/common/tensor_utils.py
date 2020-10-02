@@ -2,11 +2,7 @@ from typing import List
 import torch
 
 
-def pad_3d_sequence(
-    tokens: List[List[int]],
-    max_sent_length: int = None,
-    max_sents: int = None
-) -> torch.Tensor:
+def pad_3d_sequence(tokens: List[List[int]], max_sent_length: int = None, max_sents: int = None) -> torch.Tensor:
     """
     Perform padding for 3D Tensor
     (Batch Size x Number of sentences x Number of words in sentences).

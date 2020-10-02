@@ -1,3 +1,3 @@
 class TokensMetadata:
-    PAD = '@@PADDING@@'
-    OOV = '@@UNKNOWN@@'
+    PAD = "@@PADDING@@"
+    OOV = "@@UNKNOWN@@"
