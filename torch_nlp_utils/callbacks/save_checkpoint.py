@@ -50,7 +50,7 @@ class SaveCheckpoint:
             self._delete_spare_if_needed()
 
     def _delete_spare_if_needed(self):
-        checkpoints = os.listdir(self._directory)
+        checkpoints = sorted(os.listdir(self._directory))
         if len(checkpoints) > self._keep_num_checkpoints:
             for checkpoint in checkpoints[:-self._keep_num_checkpoints]:
                 shutil.rmtree(os.path.join(self._directory, checkpoint), ignore_errors=True)
