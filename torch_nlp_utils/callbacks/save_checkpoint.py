@@ -3,6 +3,7 @@ import os
 import json
 import torch
 import shutil
+from loguru import logger
 
 
 class SaveCheckpoint:
@@ -21,10 +22,15 @@ class SaveCheckpoint:
 
     def __init__(
         self,
-        model: torch.nn.Module,
         directory: str,
+        model: torch.nn.Module = None,
         keep_num_checkpoints: int = None,
     ) -> None:
+        if model is None:
+            logger.warning(
+                "Model is not passed in init. "
+                "Then you should pass dict to save with torch.save by yourself."
+            )
         os.makedirs(directory, exist_ok=False)
         if keep_num_checkpoints is not None and keep_num_checkpoints < 1:
             raise Exception("keep_num_checkpoints should be greater than 0")
@@ -33,15 +39,17 @@ class SaveCheckpoint:
         self._directory = directory
         self._keep_num_checkpoints = keep_num_checkpoints
 
-    def __call__(self, metrics: Dict[str, Any], should_save: bool) -> None:
+    def __call__(self, metrics: Dict[str, Any], should_save: bool, save_dict: Dict[str, Any] = None) -> None:
         """Perform saving after one epoch."""
+        if not save_dict and not self._model:
+            raise Exception("You should pass save_dict on call if model is None.")
         if not should_save:
             self.epoch_idx += 1
             return
         cur_epoch_dir = os.path.join(self._directory, f"epoch_{self.epoch_idx}")
         os.makedirs(cur_epoch_dir, exist_ok=True)
         # Save torch model
-        torch.save(self._model.state_dict(), os.path.join(cur_epoch_dir, "model.pt"))
+        torch.save(save_dict or self._model.state_dict(), os.path.join(cur_epoch_dir, "model.pt"))
         # Save metrics
         with open(os.path.join(cur_epoch_dir, "metrics.json"), mode="w", encoding="utf-8") as file:
             json.dump(metrics, file, ensure_ascii=False, indent=2)
