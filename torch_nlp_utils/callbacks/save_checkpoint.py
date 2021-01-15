@@ -38,14 +38,21 @@ class SaveCheckpoint:
         self._model = model
         self._directory = directory
         self._keep_num_checkpoints = keep_num_checkpoints
+        self._best_model_path = None
 
-    def __call__(self, metrics: Dict[str, Any], should_save: bool, save_dict: Dict[str, Any] = None) -> None:
+    @property
+    def best_model_path(self) -> str:
+        return self._best_model_path
+
+    def __call__(
+        self,
+        metrics: Dict[str, Any],
+        is_best_so_far: bool,
+        save_dict: Dict[str, Any] = None
+    ) -> None:
         """Perform saving after one epoch."""
         if not save_dict and not self._model:
             raise Exception("You should pass save_dict on call if model is None.")
-        if not should_save:
-            self.epoch_idx += 1
-            return
         cur_epoch_dir = os.path.join(self._directory, f"epoch_{self.epoch_idx}")
         os.makedirs(cur_epoch_dir, exist_ok=True)
         # Save torch model
@@ -53,9 +60,19 @@ class SaveCheckpoint:
         # Save metrics
         with open(os.path.join(cur_epoch_dir, "metrics.json"), mode="w", encoding="utf-8") as file:
             json.dump(metrics, file, ensure_ascii=False, indent=2)
-        self.epoch_idx += 1
+        # Save best model
+        if is_best_so_far:
+            logger.info(
+                f"Best validation performance so far. Copying to '{self._directory}/best'.",
+            )
+            best_model_path = os.path.join(self._directory, "best")
+            shutil.copytree(cur_epoch_dir, best_model_path)
+            self._best_model_path = best_model_path
+        # Delete spare checkpoints
         if self._keep_num_checkpoints:
             self._delete_spare_if_needed()
+        # Update epoch index
+        self.epoch_idx += 1
 
     def _delete_spare_if_needed(self):
         checkpoints = sorted(os.listdir(self._directory))
