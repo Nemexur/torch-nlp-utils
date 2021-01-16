@@ -35,13 +35,9 @@ class FromParams:
                 raise ConfigurationError("We cannot instantiate subclass without its type.")
             subclass = registered_subclasses[subclass_type]
             logger.info(f"Instantiating class {subclass} inherited from {cls}.", feature="f-strings")
-            return subclass(**params)
+            if hasattr(subclass, "from_params"):
+                return subclass.from_params(**params)
+            else:
+                return subclass(**params)
         else:
-            logger.warning(
-                f"""
-                {cls} is not registered so we can not instantiate any subclass from it.
-                Probably it is a subclass, so we try to instantiate it.
-                """,
-                feature="f-strings",
-            )
             return cls(**params)
