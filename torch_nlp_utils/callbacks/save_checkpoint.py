@@ -66,6 +66,9 @@ class SaveCheckpoint:
                 f"Best validation performance so far. Copying to '{self._directory}/best'.",
             )
             best_model_path = os.path.join(self._directory, "best")
+            # Delete directory if exists
+            if os.path.exists(best_model_path):
+                shutil.rmtree(best_model_path)
             shutil.copytree(cur_epoch_dir, best_model_path)
             self._best_model_path = best_model_path
         # Delete spare checkpoints
@@ -78,4 +81,4 @@ class SaveCheckpoint:
         checkpoints = sorted(os.listdir(self._directory))
         if len(checkpoints) > self._keep_num_checkpoints:
             for checkpoint in checkpoints[:-self._keep_num_checkpoints]:
-                shutil.rmtree(os.path.join(self._directory, checkpoint), ignore_errors=True)
+                shutil.rmtree(os.path.join(self._directory, checkpoint))
