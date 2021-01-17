@@ -1,9 +1,13 @@
-from typing import Iterable, Dict, List, DefaultDict, Callable, Any
-from torch_nlp_utils.data.dataset_readers.datasets import MemorySizedDatasetInstances, DatasetInstances
+from typing import Iterable, Dict, List, DefaultDict, Callable, Any, Union, T
+import torch
 from functools import wraps
 from collections import defaultdict
+from torch_nlp_utils.common import Registrable
 from torch.utils.data import DataLoader, Dataset
 from torch_nlp_utils.common.utils import partialclass
+from torch_nlp_utils.data.dataset_readers.datasets import (
+    MemorySizedDatasetInstances, DatasetInstances
+)
 
 
 class Batch:
@@ -53,6 +57,32 @@ def custom_collate(collate_fn: Callable) -> Callable:
         return collate_fn(Batch(instances))
 
     return wrapper
+
+
+class DefaultCollateBatch(Registrable):
+    """
+    Default class to Collate Batch of Data for Data Iterator.
+    Properties of this class are names of parameters that should be passed in forward pass.
+    """
+
+    def pin_memory(self) -> T:
+        """Pin memory for fast data transfer on CUDA."""
+        self.__dict__ = {
+            prop: tensor.pin_memory()
+            for prop, tensor in self.__dict__.items()
+        }
+        return self
+
+    def to_device(
+        self,
+        device: Union[str, torch.device],
+        **extra_params
+    ) -> Dict[str, torch.Tensor]:
+        """Helper function to send batch to device and convert it to dict."""
+        return {
+            prop: tensor.to(device=device, **extra_params)
+            for prop, tensor in self.__dict__.items()
+        }
 
 
 class DataIterator:

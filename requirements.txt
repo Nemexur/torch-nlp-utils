@@ -2,3 +2,4 @@ tqdm
 loguru
 overrides
 torch>=1.5.0
+jsonnet>=0.17.0

@@ -6,14 +6,15 @@ Copyright by the AllenNLP authors.
 """
 
 from typing import Iterable, Any, Dict
-from .datasets import DatasetInstances, LazyDatasetInstances, MemorySizedDatasetInstances
 from tqdm import tqdm
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
+from torch_nlp_utils.common import Registrable
 from torch.utils.data import Dataset, IterableDataset
 from torch_nlp_utils.common.checks import ConfigurationError
+from .datasets import DatasetInstances, LazyDatasetInstances, MemorySizedDatasetInstances
 
 
-class DatasetReader(metaclass=ABCMeta):
+class DatasetReader(ABC, Registrable):
     """
     A `DatasetReader` perform data reading from certain file.
     To implement your own, just override the `_read(file_path)` method to return an `Iterable` of the instances.
