@@ -82,7 +82,6 @@ class Registrable(FromParams):
             # if passed name as None probably because we tried to
             # initialize a subclass of registried class
             return None
-        logger.debug(f"Instantiating registered subclass {name} of {cls}.")
         if name in Registrable._registry[cls]:
             return Registrable._registry[cls].get(name)
         else:
