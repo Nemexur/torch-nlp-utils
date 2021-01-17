@@ -59,7 +59,7 @@ def custom_collate(collate_fn: Callable) -> Callable:
     return wrapper
 
 
-class DefaultCollateBatch(Registrable):
+class CollateBatch(Registrable):
     """
     Default class to Collate Batch of Data for Data Iterator.
     Properties of this class are names of parameters that should be passed in forward pass.
