@@ -86,4 +86,4 @@ class SaveCheckpoint:
         )
         if len(checkpoints) > self._keep_num_checkpoints:
             for checkpoint in checkpoints[:-self._keep_num_checkpoints]:
-                shutil.rmtree(self._directory / checkpoint)
+                shutil.rmtree(checkpoint)
