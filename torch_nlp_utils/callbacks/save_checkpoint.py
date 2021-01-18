@@ -38,7 +38,6 @@ class SaveCheckpoint:
         self._directory.mkdir(exist_ok=False)
         self.epoch_idx = 0
         self._model = model
-        self._directory = directory
         self._keep_num_checkpoints = keep_num_checkpoints
         self._best_model_path = None
 
