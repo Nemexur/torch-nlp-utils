@@ -1,10 +1,11 @@
 from typing import Iterable, Dict, List, DefaultDict, Callable, Any, Union, T
 import torch
+import numpy as np
 from functools import wraps
 from collections import defaultdict
 from torch_nlp_utils.common import Registrable
-from torch.utils.data import DataLoader, Dataset
 from torch_nlp_utils.common.utils import partialclass
+from torch.utils.data import DataLoader, Dataset, IterableDataset
 from torch_nlp_utils.data.dataset_readers.datasets import (
     MemorySizedDatasetInstances, DatasetInstances
 )
@@ -96,17 +97,25 @@ class DataIterator:
     sampling methods for `torch.utils.data.DataLoader`
     """
 
-    def __init__(self, dataset: Dataset, collate_fn: Callable, *args, **kwargs) -> None:
+    def __init__(
+        self, dataset: Dataset, batch_size: int, collate_fn: Callable, *args, **kwargs
+    ) -> None:
         self._dataset = dataset
+        self._batch_size = batch_size
         self._is_memory_sized_dataset = isinstance(dataset, MemorySizedDatasetInstances)
+        self._collate_fn = custom_collate(collate_fn)
         if not self._is_memory_sized_dataset:
             self._dataloader: DataLoader = DataLoader(
-                dataset, collate_fn=custom_collate(collate_fn), *args, **kwargs
+                dataset, batch_size=batch_size, collate_fn=self._collate_fn, *args, **kwargs
             )
         else:
             self._dataloader: DataLoader = partialclass(
-                DataLoader, collate_fn=custom_collate(collate_fn), *args, **kwargs
+                DataLoader, batch_size=batch_size, collate_fn=self._collate_fn, *args, **kwargs
             )
+
+    @property
+    def batch_size(self) -> int:
+        return self._batch_size
 
     def __len__(self):
         if not self._is_memory_sized_dataset:
@@ -120,3 +129,17 @@ class DataIterator:
         else:
             for dataset in self._dataset:
                 yield from self._dataloader(DatasetInstances(dataset))
+
+    def sample(self) -> Any:
+        """
+        Return random sample from dataset.
+        It might be needed for tasks where you need to do additional updates
+        like in aggressive training for VAE.
+        """
+        if isinstance(self._dataset, IterableDataset):
+            raise Exception("Sample is not supported for Iterable dataset.")
+        indices = np.random.choice(len(self._dataset), size=self._batch_size)
+        sample = self._collate_fn([self._dataset[idx] for idx in indices])
+        if self._dataloader.pin_memory:
+            sample.pin_memory()
+        return sample
