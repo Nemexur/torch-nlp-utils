@@ -93,7 +93,10 @@ class Namespace:
         `processing_type=padding_oov/padding/just_encode`.
         """
         # max_size is None then we will never reach maximum capacity.
-        not_reached_max = len(self._encoders.token_to_index) <= self._max_size if self._max_size else True
+        not_reached_max = (
+            len(self._encoders.token_to_index) <= self._max_size
+            if self._max_size else True
+        )
         if token not in self._encoders.token_to_index and not_reached_max:
             index = len(self._encoders.token_to_index)
             # json saves only strings as keys

@@ -1,4 +1,4 @@
-from typing import Dict, Callable, Any, Type, T, List, Iterable
+from typing import Dict, Any, Type, T, List, Iterable, Union
 import os
 from tqdm import tqdm
 from copy import deepcopy
@@ -83,31 +83,25 @@ class Vocabulary:
             vocab._namespaces[namespace] = Namespace.load(namespace_dir)
         return vocab
 
-    def get_encoder(self) -> Callable:
-        """Get encoder for tokens (token -> index)."""
+    def encode(
+        self, sample: Dict[str, Union[str, List[str]]]
+    ) -> Dict[str, Union[int, List[int]]]:
+        return {
+            namespace: [self.token_to_index(token, namespace) for token in tokens]
+            if isinstance(tokens, Iterable) and not isinstance(tokens, str)
+            else self.token_to_index(tokens, namespace)
+            for namespace, tokens in sample.items()
+        }
 
-        def encoder(sample: Dict):
-            return {
-                namespace: [self.token_to_index(token, namespace) for token in tokens]
-                if isinstance(tokens, Iterable) and not isinstance(tokens, str)
-                else self.token_to_index(tokens, namespace)
-                for namespace, tokens in sample.items()
-            }
-
-        return encoder
-
-    def get_decoder(self) -> Callable:
-        """Get decoder for tokens (index -> token)."""
-
-        def decoder(sample: Dict):
-            return {
-                namespace: [self.index_to_token(index, namespace) for index in indexes]
-                if isinstance(indexes, Iterable)
-                else self.index_to_token(indexes, namespace)
-                for namespace, indexes in sample.items()
-            }
-
-        return decoder
+    def decode(
+        self, sample: Dict[str, Union[int, List[int]]]
+    ) -> Dict[str, Union[Any, List[Any]]]:
+        return {
+            namespace: [self.index_to_token(index, namespace) for index in indexes]
+            if isinstance(indexes, Iterable)
+            else self.index_to_token(indexes, namespace)
+            for namespace, indexes in sample.items()
+        }
 
     def get_vocab_size(self, namespace: str = "tokens") -> int:
         """Get size of vocabulary for a `namespace`."""
@@ -122,11 +116,17 @@ class Vocabulary:
         try:
             return self._namespaces[namespace].token_to_index(token)
         except Exception as err:
-            raise Exception(f"\nUnexpected error occurred: {err}\n" f"Namespace: {namespace} " f"Token: {token}")
+            raise Exception(
+                f"Unexpected error occurred: {err}\n"
+                f"Namespace: {namespace} " f"Token: {token}"
+            )
 
     def index_to_token(self, index: int, namespace: str = "tokens") -> Any:
         """Get token for `index` in a `namespace`."""
         try:
             return self._namespaces[namespace].index_to_token(index)
         except Exception as err:
-            raise Exception(f"\nUnexpected error occurred: {err}.\n" f"Namespace: {namespace} " f"Index: {index}")
+            raise Exception(
+                f"Unexpected error occurred: {err}.\n"
+                f"Namespace: {namespace} " f"Index: {index}"
+            )

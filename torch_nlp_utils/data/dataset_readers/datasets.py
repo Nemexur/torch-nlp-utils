@@ -1,19 +1,20 @@
-from typing import List, Callable, Iterable, Iterator, Any
-from torch.utils.data import Dataset, IterableDataset
+from typing import List, Callable, Iterable, Iterator, Any, Dict, Union
+from overrides import overrides
 from torch_nlp_utils.data.vocabulary import Vocabulary
 from torch_nlp_utils.common.utils import lazy_groups_of
 from torch_nlp_utils.common.checks import ConfigurationError
+from torch.utils.data import Dataset, IterableDataset, get_worker_info
 
 
 class Encodable:
     def __init__(self):
-        self._encoder = lambda x: x
+        self._vocab: Vocabulary = None
 
-    def encode_with(self, vocab: Vocabulary):
-        self._encoder = vocab.get_encoder()
+    def encode_with(self, vocab: Vocabulary) -> None:
+        self._vocab = vocab
 
-    def encode(self, token: Any) -> Callable:
-        return self._encoder(token)
+    def encode(self, token: Dict[str, Union[Any, List[Any]]]) -> Dict[str, Union[int, List[int]]]:
+        return self._vocab.encode(token) if self._vocab is not None else token
 
 
 class DatasetInstances(Dataset, Encodable):
@@ -82,3 +83,27 @@ class MemorySizedDatasetInstances(IterableDataset, Encodable):
         as we keep in-memory only this many instances at a time.
         """
         return self._max_instances_in_memory
+
+# TODO: Work in progress
+class ShardedDatasetInstances(IterableDataset, Encodable):
+    def __init__(self, shards: List[IterableDataset]) -> None:
+        super().__init__()
+        self._shards = shards
+
+    @overrides
+    def encode_with(self, vocab: Vocabulary) -> None:
+        for shard in self._shards:
+            # Shard is an Iterable Dataset of type
+            # LazyDatasetInstances or MemorySizedDatasetInstances
+            shard.encode_with(vocab)
+
+    def __iter__(self):
+        worker_info = get_worker_info()
+        if worker_info is None:
+            for shard in self._shards:
+                yield from shard
+        else:
+            if worker_info.num_workers != len(self._shards):
+                raise Exception("Number of workers should be equal to the number of datasets.")
+            rank = worker_info.id
+            return iter(self._shards[rank])
