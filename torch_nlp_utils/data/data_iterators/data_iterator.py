@@ -85,6 +85,9 @@ class CollateBatch(Registrable):
             for prop, tensor in self.__dict__.items()
         }
 
+    def as_dict(self) -> Dict[str, torch.Tensor]:
+        return self.__dict__
+
 
 class DataIterator:
     """
