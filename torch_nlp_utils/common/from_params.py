@@ -34,7 +34,8 @@ class FromParams:
             if subclass_type is None:
                 raise ConfigurationError("We cannot instantiate subclass without its type.")
             subclass = registered_subclasses[subclass_type]
-            logger.info(f"Instantiating class {subclass} inherited from {cls}.", feature="f-strings")
+            if not getattr(cls, "__disable_logging__", False):
+                logger.info(f"Instantiating class {subclass} inherited from {cls}.")
             if hasattr(subclass, "from_params"):
                 return subclass.from_params(**params)
             else:
