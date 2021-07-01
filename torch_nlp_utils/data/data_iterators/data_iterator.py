@@ -69,20 +69,20 @@ class CollateBatch(Registrable):
     def pin_memory(self) -> T:
         """Pin memory for fast data transfer on CUDA."""
         self.__dict__ = {
-            prop: tensor.pin_memory()
-            for prop, tensor in self.__dict__.items()
+            prop: value.pin_memory() if isinstance(value, torch.Tensor) else value
+            for prop, value in self.__dict__.items()
         }
         return self
 
     def to_device(
         self,
         device: Union[str, torch.device],
-        **extra_params
+        **params
     ) -> Dict[str, torch.Tensor]:
         """Helper function to send batch to device and convert it to dict."""
         return {
-            prop: tensor.to(device=device, **extra_params)
-            for prop, tensor in self.__dict__.items()
+            prop: value.to(device=device, **params) if isinstance(value, torch.Tensor) else value
+            for prop, value in self.__dict__.items()
         }
 
     def as_dict(self) -> Dict[str, torch.Tensor]:
