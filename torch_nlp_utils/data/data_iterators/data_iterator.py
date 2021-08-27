@@ -1,7 +1,6 @@
 from typing import Iterable, Dict, List, DefaultDict, Callable, Any, Union, T
 import torch
 import numpy as np
-from functools import wraps
 from collections import defaultdict
 from torch_nlp_utils.common import Registrable
 from torch_nlp_utils.common.utils import partialclass
@@ -50,16 +49,6 @@ class Batch:
         return tensor_dict
 
 
-def custom_collate(collate_fn: Callable) -> Callable:
-    """Decorator for PyTorch collate function."""
-
-    @wraps(collate_fn)
-    def wrapper(instances: Iterable[Dict[str, List]]) -> Any:
-        return collate_fn(Batch(instances))
-
-    return wrapper
-
-
 class CollateBatch(Registrable):
     """
     Default class to Collate Batch of Data for Data Iterator.
@@ -106,7 +95,7 @@ class DataIterator:
         self._dataset = dataset
         self._batch_size = batch_size
         self._is_memory_sized_dataset = isinstance(dataset, MemorySizedDatasetInstances)
-        self._collate_fn = custom_collate(collate_fn)
+        self._internal_collate_fn = collate_fn
         if not self._is_memory_sized_dataset:
             self._dataloader: DataLoader = DataLoader(
                 dataset, batch_size=batch_size, collate_fn=self._collate_fn, *args, **kwargs
@@ -146,3 +135,6 @@ class DataIterator:
         if self._dataloader.pin_memory:
             sample.pin_memory()
         return sample
+
+    def _collate_fn(self, instances: Iterable[Dict[str, List]]) -> Any:
+        return self._internal_collate_fn(Batch(instances))
