@@ -57,7 +57,7 @@ class SaveCheckpoint:
         cur_epoch_dir = self._directory / f"epoch_{self.epoch_idx}"
         cur_epoch_dir.mkdir()
         # Save torch model
-        torch.save(save_dict or self._model.state_dict(), cur_epoch_dir / "model.pt")
+        torch.save(save_dict or self._model.state_dict(), cur_epoch_dir / "model.wt")
         # Save metrics
         with (cur_epoch_dir / "metrics.json").open(mode="w", encoding="utf-8") as file:
             json.dump(metrics, file, ensure_ascii=False, indent=2)
