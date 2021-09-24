@@ -29,7 +29,7 @@ class Statistics(Registrable):
     def update_stats(self, tokens: Union[List[str], List[int]]) -> None:
         """Update statistics with `tokens`."""
         for token in tokens:
-            self._frequencies[token] += 1
+            self._frequencies[str(token)] += 1
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get all statistics as dictionary."""

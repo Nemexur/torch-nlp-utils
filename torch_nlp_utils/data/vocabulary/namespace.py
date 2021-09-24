@@ -97,7 +97,7 @@ class Namespace:
             len(self._encoders.token_to_index) <= self._max_size
             if self._max_size else True
         )
-        if token not in self._encoders.token_to_index and not_reached_max:
+        if str(token) not in self._encoders.token_to_index and not_reached_max:
             index = len(self._encoders.token_to_index)
             # json saves only strings as keys
             self._encoders.token_to_index[str(token)] = index
