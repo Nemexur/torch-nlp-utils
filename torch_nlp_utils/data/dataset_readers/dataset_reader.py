@@ -7,6 +7,7 @@ Copyright by the AllenNLP authors.
 
 from typing import Iterable, Any, Dict
 from tqdm import tqdm
+from functools import partial
 from abc import ABC, abstractmethod
 from torch_nlp_utils.common import Registrable
 from torch.utils.data import Dataset, IterableDataset
@@ -62,11 +63,13 @@ class DatasetReader(ABC, Registrable):
         if self._lazy:
             if self._max_instances_in_memory is not None and self._max_instances_in_memory > 0:
                 instances: IterableDataset = MemorySizedDatasetInstances(
-                    lambda: self._read(file_path),
-                    max_instances_in_memory=self._max_instances_in_memory
+                    partial(self._read, file_path=file_path),
+                    max_instances_in_memory=self._max_instances_in_memory,
                 )
             else:
-                instances: IterableDataset = LazyDatasetInstances(lambda: self._read(file_path))
+                instances: IterableDataset = LazyDatasetInstances(
+                    partial(self._read, file_path=file_path),
+                )
         else:
             instances = self._read(file_path)
 
