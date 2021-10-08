@@ -92,8 +92,8 @@ class DataIterator:
     def __init__(
         self, dataset: Dataset, batch_size: int, collate_fn: Callable, *args, **kwargs
     ) -> None:
-        self._dataset = dataset
-        self._batch_size = batch_size
+        self.dataset = dataset
+        self.batch_size = batch_size
         self._is_memory_sized_dataset = isinstance(dataset, MemorySizedDatasetInstances)
         self._internal_collate_fn = collate_fn
         if not self._is_memory_sized_dataset:
