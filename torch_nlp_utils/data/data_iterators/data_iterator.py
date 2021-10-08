@@ -93,16 +93,16 @@ class DataIterator:
         self, dataset: Dataset, batch_size: int, collate_fn: Callable, *args, **kwargs
     ) -> None:
         self.dataset = dataset
-        self.batch_size = batch_size
+        self._batch_size = batch_size
         self._is_memory_sized_dataset = isinstance(dataset, MemorySizedDatasetInstances)
         self._internal_collate_fn = collate_fn
         if not self._is_memory_sized_dataset:
             self._dataloader: DataLoader = DataLoader(
-                dataset, batch_size=batch_size, collate_fn=self._collate_fn, *args, **kwargs
+                dataset, batch_size=batch_size, collate_fn=self.collate_fn, *args, **kwargs
             )
         else:
             self._dataloader: DataLoader = partialclass(
-                DataLoader, batch_size=batch_size, collate_fn=self._collate_fn, *args, **kwargs
+                DataLoader, batch_size=batch_size, collate_fn=self.collate_fn, *args, **kwargs
             )
 
     @property
@@ -131,10 +131,10 @@ class DataIterator:
         if isinstance(self._dataset, IterableDataset):
             raise Exception("Sample is not supported for Iterable dataset.")
         indices = np.random.choice(len(self._dataset), size=self._batch_size)
-        sample = self._collate_fn([self._dataset[idx] for idx in indices])
+        sample = self.collate_fn([self._dataset[idx] for idx in indices])
         if self._dataloader.pin_memory:
             sample.pin_memory()
         return sample
 
-    def _collate_fn(self, instances: Iterable[Dict[str, List]]) -> Any:
+    def collate_fn(self, instances: Iterable[Dict[str, List]]) -> Any:
         return self._internal_collate_fn(Batch(instances))
